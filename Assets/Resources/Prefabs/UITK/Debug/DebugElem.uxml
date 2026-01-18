@@ -1,0 +1,13 @@
+<engine:UXML xmlns:engine="UnityEngine.UIElements" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" editor-extension-mode="False">
+    <Style src="project://database/Assets/Resources/Prefabs/UITK/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=86e977b4135def84193d1b8a5d219e84&amp;type=3#NewUSSFile" />
+    <engine:VisualElement class="root">
+        <engine:VisualElement class="row top">
+            <engine:VisualElement class="box tl" />
+            <engine:VisualElement class="box tr" />
+        </engine:VisualElement>
+        <engine:VisualElement class="row bottom">
+            <engine:VisualElement class="box bl" />
+            <engine:VisualElement class="box br" />
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>
