@@ -11,7 +11,7 @@ public static class GlobalGame
 
     public static IInputController InputController { get; private set; }
 
-    public static ILocalization Localization { get; private set; } = new LocalizationManager();
+    public static ResourceSystem.ILocalization Localization { get; private set; } = new ResourceSystem.LocalizationManager();
 
     public static GlobalGameSettings Settings = new();
     public static IGameProfiles Profiles = new GameProfiles();

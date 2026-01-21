@@ -1,3 +1,4 @@
+using ResourceSystem;
 using System;
 using System.Collections.Generic;
 using UniRx;
@@ -7,20 +8,28 @@ namespace UITK
     /* Для получения локализованного текста */
     public abstract partial class UIComponent : IDisposable
     {
-        protected ILocalization Localization = GlobalGame.Localization;
+        protected ResourceSystem.ILocalization Localization = GlobalGame.Localization;
         private IDisposable _languageSub;
-        private readonly Dictionary<string, ILocalizationBinding> _locBindings = new(); // Список ILocalizationBinding у этого компонента
+        private readonly Dictionary<string, IResourceBinding<string>> _locBindings = new();
 
-        protected string Text(string key)
+        protected string Text(string resourceKey, string key)
         {
-            if (!_locBindings.TryGetValue(key, out var binding))
+            var bindingKey = $"{resourceKey}|{key}";
+
+            if (!_locBindings.TryGetValue(bindingKey, out var binding))
             {
                 // Создаем нашу прослойку, передавая туда сервис и настройки языков
-                binding = new TextTwoLangLocalizationBinding(Localization.Text, Localization.Language.Value, ILocalization.BaseLanguage, key);
-                _locBindings[key] = binding;
+                binding = new ResourceSystem.TextTwoLangLocalizationBinding(
+                    Localization.Text,
+                    Localization.Language.Value,
+                    ILocalization.BaseLanguage,
+                    resourceKey,
+                    key
+                );
+                _locBindings[bindingKey] = binding;
             }
 
-            return binding.Text;
+            return binding.Resource;
         }
 
         protected void SubscribeLanguage()

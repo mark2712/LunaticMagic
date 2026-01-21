@@ -31,12 +31,12 @@ namespace UITK
         {
             for (int i = 0; i < _difficultyRadios.Count; i++)
             {
-                _difficultyRadios[i].text = Text($"ui/DifficultyGame.{i}");
+                _difficultyRadios[i].text = Text("ui/DifficultyGame", $"{i}");
             }
 
             for (int i = 0; i < _profileTypeRadios.Count; i++)
             {
-                _profileTypeRadios[i].text = Text($"ui/ProfileTypes.{i}");
+                _profileTypeRadios[i].text = Text("ui/ProfileTypes", $"{i}");
             }
         }
 
