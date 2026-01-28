@@ -3,14 +3,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using UniRx;
+using UnityEngine.InputSystem;
 
 
 namespace ResourceSystem
 {
-    public abstract class ResourceManager<T> : IResourceManager<T>
+    public abstract class ResourceController<T> : IResourceController<T>
     {
-        protected readonly Dictionary<string, ResourceAsset<T>> _assets = new();
-        public IReadOnlyDictionary<string, ResourceAsset<T>> Assets => _assets;
+        protected readonly ReactiveDictionary<string, ResourceAsset<T>> _assets = new();
+        public IReadOnlyReactiveDictionary<string, ResourceAsset<T>> Assets => _assets;
 
         private readonly Dictionary<string, Task<ResourceAsset<T>>> _loading = new();
 
@@ -63,7 +65,6 @@ namespace ResourceSystem
             if (_assets.TryGetValue(key, out var asset))
             {
                 asset.RefCount--;
-                asset.UpdateLastUseTime();
             }
         }
 
@@ -73,7 +74,7 @@ namespace ResourceSystem
         {
             foreach (var asset in _assets.Values.ToList())
             {
-                if (asset.CanUnload && asset.LastUseTime < lastUseTime)
+                if (asset.CanUnload && asset.LastUseTime.Value < lastUseTime)
                 {
                     UnloadInternal(asset);
                     _assets.Remove(asset.Key);
@@ -90,26 +91,13 @@ namespace ResourceSystem
         private async Task<ResourceAsset<T>> LoadInternalAsync(string key)
         {
             var resource = await LoadAsync(key);
-            return new ResourceAsset<T>
-            {
-                Key = key,
-                Resource = resource,
-                RefCount = 0,
-                LastUseTime = DateTime.UtcNow
-            };
+            return new ResourceAsset<T>(key, resource);
         }
 
         private ResourceAsset<T> LoadInternal(string key)
         {
             var resource = Load(key);
-            return new ResourceAsset<T>
-            {
-                Key = key,
-                Resource = resource,
-                RefCount = 0,
-                LastUseTime = DateTime.UtcNow
-            };
+            return new ResourceAsset<T>(key, resource);
         }
     }
-
 }

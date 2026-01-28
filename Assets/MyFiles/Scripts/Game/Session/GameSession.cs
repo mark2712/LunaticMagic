@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using UniRx;
 using UnityEngine;
 
 
@@ -13,6 +14,7 @@ public interface IGameSession : IDisposable
     // GameSessionData RuntimeGameSessionData { get; } // берём из gameSave если он есть, если нет то тут всегда будут init данные
 
     void Init(); // Enter, start
+    // за паузу отвечает пауза а не сессия
     // Dispose - Exit, stop
 
     void CreateSave(GameSaveTypes type, string comment); // создаст новый GameSave GameSaves.Create() и сохранит данные в него
@@ -20,6 +22,8 @@ public interface IGameSession : IDisposable
     void FixedUpdate();
     void Update();
     void LateUpdate();
+
+    public void SetDifficulty(DifficultyGame difficulty);
 }
 
 
@@ -35,6 +39,7 @@ public class GameSession : IGameSession
     public GameSession(GameProfile gameProfile, GameSave gameSave = null)
     {
         Profile = gameProfile;
+        Profile.IsSession.Value = true;
 
         // 1. Создаём папку сессии
         SessionPath = Path.Combine(DataPathManager.Sessions, SessionId);
@@ -43,7 +48,7 @@ public class GameSession : IGameSession
         // 2. Если есть сейв — копируем его содержимое в сессию
         if (gameSave != null)
         {
-            SavePath = DataPathManager.GameProfileSave(gameProfile.ProfileId.Value, gameSave.SaveId.Value);
+            SavePath = DataPathManager.GameProfileSave(Profile.ProfileId.Value, gameSave.SaveId.Value);
             DataPathManager.CopyDirectory(SavePath, SessionPath);
         }
     }
@@ -125,7 +130,7 @@ public class GameSession : IGameSession
 
     public void Dispose()
     {
-
+        Profile.IsSession.Value = false;
     }
 
     private void CleanupSessionsDirectory()
@@ -151,6 +156,13 @@ public class GameSession : IGameSession
             }
         }
     }
+
+    public void SetDifficulty(DifficultyGame difficulty)
+    {
+        if (Profile.Difficulty.Value == difficulty) return;
+        Profile.Difficulty.Value = difficulty;
+        GlobalGame.Profiles.Update(Profile);
+    }
 }
 
 
@@ -161,6 +173,7 @@ public class GameSessionData
 }
 
 
+
 // bool IsRunning { get; }
 // void StartSession(); // запускает сессию
 // void StopSession(); // пауза
@@ -168,3 +181,19 @@ public class GameSessionData
 
 // void CreateSession(GameProfile gameProfile, GameSave gameSave); // создает сессию (создаёт папку, копирует данные из gameSave)
 // private void CreateSession(GameProfile gameProfile, GameSave gameSave = null) { }
+
+
+// public sealed class GameSessionProfile
+// {
+//     public string ProfileId;
+//     public ReactiveProperty<string> Name = new();
+//     public ReactiveProperty<DifficultyGame> Difficulty = new();
+// }
+
+
+// // Добавить профиль сессии
+// if (GlobalGame.Session?.Profile != null)
+// {
+//     GameProfile profile = GlobalGame.Session.Profile;
+//     _profiles[profile.ProfileId.Value] = profile;
+// }

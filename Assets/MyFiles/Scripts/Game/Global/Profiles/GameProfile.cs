@@ -1,11 +1,6 @@
 using System;
 using UniRx;
 
-public enum ProfileTypes
-{
-    User,   // обычный
-    System  // системный (например для экрана загрузки)
-}
 
 public class GameProfile
 {
@@ -14,7 +9,7 @@ public class GameProfile
     public readonly ReactiveProperty<ProfileTypes> ProfileType = new(ProfileTypes.System);
     public readonly ReactiveProperty<DifficultyGame> Difficulty = new(DifficultyGame.Normal);
     public readonly ReactiveProperty<bool> IsArchive = new(false);
-    public readonly ReactiveProperty<bool> IsLocked = new(false); // Рекомендуется только для UI
+    public readonly ReactiveProperty<bool> IsSession = new(false);
 
     public GameProfile(string name)
     {

@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 [Serializable]
-public class PlatformData : ISaveLoad
+public class PlatformData
 {
     public string PlatformId;
 

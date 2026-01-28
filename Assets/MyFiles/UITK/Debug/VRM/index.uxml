@@ -1,0 +1,23 @@
+<engine:UXML xmlns:engine="UnityEngine.UIElements" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" editor-extension-mode="False">
+    <Style src="project://database/Assets/Resources/Prefabs/UITK/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=86e977b4135def84193d1b8a5d219e84&amp;type=3#NewUSSFile" />
+    
+    <engine:VisualElement class="card">
+        <engine:Label
+            class="card-title"
+            text="VRM Spawn" />
+
+        <engine:Button
+            name="SpawnButton"
+            text="Spawn VRM" />
+
+        <engine:Button
+            name="SpawnAllButton"
+            text="Spawn All VRM" />
+
+        <engine:Button
+            name="CloneButton"
+            text="Clone VRM"
+            disabled="true" />
+    </engine:VisualElement>
+
+</engine:UXML>

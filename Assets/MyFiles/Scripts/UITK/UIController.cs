@@ -19,6 +19,13 @@ namespace UITK
         private readonly List<UIComponent> _componentsToRender = new();
         private readonly HashSet<UIComponent> _scheduledSet = new();
 
+        /// <summary>
+        /// Во время RenderAll нельзя мутировать _componentsToRender, но пока идёт RenderAll могут появиться новые компоненты для рендера. 
+        /// Поэтому нужно перенести все компоненты в очереди на рендер в _componentsToRenderNow который не меняется вовремя рендера. 
+        /// </summary>
+        private List<UIComponent> _componentsToRenderNow; 
+
+
         // добавить компонент в очередь на рендер
         public void ScheduleRender(UIComponent component)
         {
@@ -52,7 +59,11 @@ namespace UITK
         // вызывает рендер изменившихся или новых компонентов
         public void RenderAll()
         {
-            foreach (var component in _componentsToRender)
+            _componentsToRenderNow = new(_componentsToRender);
+            _componentsToRender.Clear();
+            _scheduledSet.Clear();
+
+            foreach (var component in _componentsToRenderNow)
             {
                 if (component.View == null)
                 {
@@ -65,8 +76,8 @@ namespace UITK
                     component.CleanupNodes();
                 }
             }
-            _componentsToRender.Clear();
-            _scheduledSet.Clear();
+
+            _componentsToRenderNow.Clear();
         }
 
         private bool IsAncestor(UIComponent possibleAncestor, UIComponent descendant)

@@ -28,6 +28,9 @@ public class BootstrapGlobalGame : MonoBehaviour
     {
         // Cursor.lockState = CursorLockMode.Locked; 
         // Cursor.visible = false;
+
+        // SpawnVrm spawnVrm = new();
+        // spawnVrm.Spawn();
     }
 
     private void FixedUpdate()

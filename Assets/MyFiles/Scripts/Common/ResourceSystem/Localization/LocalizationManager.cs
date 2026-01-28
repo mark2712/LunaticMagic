@@ -7,14 +7,22 @@ using Unity.VisualScripting;
 
 namespace ResourceSystem
 {
-    public interface ILocalization
+    public interface ILocalization : ITextLocalizationService
     {
-        static string BaseLanguage { get; } = "ru";  // Базовый язык
-        IReadOnlyReactiveProperty<string> Language { get; } // Текущий выбранный язык (en, ru)
+        static string BaseLanguage { get; } = "ru";  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+        IReadOnlyReactiveProperty<string> Language { get; } // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (en, ru)
         IReadOnlyReactiveCollection<string> LanguageList { get; }
-        void SetLanguage(string lang); // Смена языка
+        void SetLanguage(string lang); // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         List<string> UpdateLanguageList();
-        TextLocalizationService Text { get; } // сервис локализации для текста (для текстур и аудио другие сервисы)
+
+    }
+
+    public interface ITextLocalizationService
+    {
+        // FileLocalizationManager пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
+        IResourceController<Dictionary<string, string>> Manager { get; }
+
+        IResourceBinding<string> Bind(string resourceKey, string dictKey);
     }
 
 
@@ -24,15 +32,22 @@ namespace ResourceSystem
         public IReadOnlyReactiveProperty<string> Language => _language;
         private readonly ReactiveCollection<string> _languageList = new();
         public IReadOnlyReactiveCollection<string> LanguageList => _languageList;
-        public TextLocalizationService Text { get; }
 
         public LocalizationManager()
         {
             _language = new ReactiveProperty<string>(ILocalization.BaseLanguage);
-            Text = new TextLocalizationService();
             UpdateLanguageList();
         }
 
+        // ----------- ITextLocalizationService -----------
+        public IResourceController<Dictionary<string, string>> Manager { get; private set; } = new FileLocalizationManager();
+        public IResourceBinding<string> Bind(string resourceKey, string dictKey)
+        {
+            var resource = Manager.Bind(resourceKey);
+            return new TextLocalizationBinding(resource, dictKey);
+        }
+
+        // ----------- ILocalization -----------
         public void SetLanguage(string lang)
         {
             if (_language.Value != lang)
@@ -42,7 +57,7 @@ namespace ResourceSystem
         }
 
         /// <summary>
-        /// Сканирует папки в DataPathManager.Localization
+        /// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ DataPathManager.Localization
         /// </summary>
         public List<string> UpdateLanguageList()
         {
@@ -54,9 +69,9 @@ namespace ResourceSystem
                 return _languageList.ToList();
             }
 
-            // Ищем все подпапки (en, ru, de...)
+            // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (en, ru, de...)
             _languageList.AddRange(Directory.GetDirectories(path)
-                .Select(d => new DirectoryInfo(d).Name) // Берем только имя папки
+                .Select(d => new DirectoryInfo(d).Name) // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
                 .ToList()
             );
 

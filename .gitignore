@@ -16,7 +16,7 @@
 *.opendb
 *.VC.db
 *.vrm
-*.meta
+
 
 !.gitignore
 
@@ -25,7 +25,8 @@
 !Assets/MyFiles/Scripts/
 !Assets/MyFiles/Scripts/**
 
-!Assets/Resources/
-!Assets/Resources/Prefabs
-!Assets/Resources/Prefabs/UITK
-!Assets/Resources/Prefabs/UITK/**
+!Assets/MyFiles/UITK
+!Assets/MyFiles/UITK/**
+
+
+*.meta

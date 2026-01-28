@@ -8,7 +8,7 @@ namespace UITK
     /* Для получения локализованного текста */
     public abstract partial class UIComponent : IDisposable
     {
-        protected ResourceSystem.ILocalization Localization = GlobalGame.Localization;
+        protected ILocalization Localization = ResourceManager.Localization;
         private IDisposable _languageSub;
         private readonly Dictionary<string, IResourceBinding<string>> _locBindings = new();
 
@@ -19,8 +19,8 @@ namespace UITK
             if (!_locBindings.TryGetValue(bindingKey, out var binding))
             {
                 // Создаем нашу прослойку, передавая туда сервис и настройки языков
-                binding = new ResourceSystem.TextTwoLangLocalizationBinding(
-                    Localization.Text,
+                binding = new TextTwoLangLocalizationBinding(
+                    Localization,
                     Localization.Language.Value,
                     ILocalization.BaseLanguage,
                     resourceKey,

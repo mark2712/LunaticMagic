@@ -1,0 +1,8 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/MyFiles/UITK/Components/Language/Dropdown/style.uss?fileID=7433441132597879392&amp;guid=f6707f7b62e758b48999601da36e7a20&amp;type=3#style"/>
+    <engine:VisualElement class="lang-dropdown">
+        <engine:Label text="Language" class="lang-title"/>
+        <engine:Button name="CurrentButton" class="lang-current"/>
+        <engine:VisualElement name="Dropdown" class="lang-dropdown-list hidden"/>
+    </engine:VisualElement>
+</engine:UXML>

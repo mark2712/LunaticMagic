@@ -11,8 +11,6 @@ public static class GlobalGame
 
     public static IInputController InputController { get; private set; }
 
-    public static ResourceSystem.ILocalization Localization { get; private set; } = new ResourceSystem.LocalizationManager();
-
     public static GlobalGameSettings Settings = new();
     public static IGameProfiles Profiles = new GameProfiles();
     public static GameSession Session;
@@ -22,8 +20,9 @@ public static class GlobalGame
         Load();
         InputController = new InputController();
 
-        Profiles.LoadProfiles();
-        Session = new(Profiles.Profiles[SystemProfileIds.SystemDebug]);
+        Profiles.LoadProfiles(true); // если флаг true то будут созданы системные профили
+        // Session = new(Profiles.Profiles[SystemProfileIds.SystemDebug]);
+        Session = new(Profiles.Profiles["test1_ff28c2e80cd9"]);
         Profiles.Dispose();
 
         Save();
@@ -45,7 +44,7 @@ public static class GlobalGame
         if (globalGameData != null)
         {
             Settings = globalGameData.GlobalGameSettings;
-            Localization.SetLanguage(globalGameData.Language);
+            ResourceManager.Localization.SetLanguage(globalGameData.Language);
         }
     }
 
@@ -54,7 +53,7 @@ public static class GlobalGame
         GlobalGameData globalGameData = new()
         {
             GlobalGameSettings = Settings,
-            Language = Localization.Language.Value,
+            Language = ResourceManager.Localization.Language.Value,
         };
         SaveData.Save(globalGameData, DataPathManager.GlobalSaves, "GlobalGameData");
     }
@@ -65,5 +64,5 @@ public static class GlobalGame
 public class GlobalGameData
 {
     public GlobalGameSettings GlobalGameSettings = new();
-    public string Language = ILocalization.BaseLanguage;
+    public string Language = ResourceSystem.ILocalization.BaseLanguage;
 }

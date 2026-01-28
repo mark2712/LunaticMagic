@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace MobsOld
 {
-    public class MobsManager : ISaveLoad
+    public class MobsManager
     {
         private Dictionary<string, Mob> Mobs = new();
 

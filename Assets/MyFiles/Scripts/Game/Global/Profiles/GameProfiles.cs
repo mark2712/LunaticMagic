@@ -12,7 +12,7 @@ public interface IGameProfiles : IDisposable
     IReadOnlyReactiveDictionary<string, GameProfile> Profiles { get; }
     IReadOnlyReactiveDictionary<string, IGameSaves> GameProfilesSaves { get; }
 
-    void LoadProfiles(); // загрузить все профили из папки с профилями
+    void LoadProfiles(bool isCreateInitProfiles = false); // загрузить все профили из папки с профилями, при первом запуске обязателен флаг true
     IGameSaves LoadSaves(string ProfileId); // сразу загружает и профили и сохранения для профиля ProfileId
 
     GameProfile Create(GameProfile gameProfile);
@@ -64,7 +64,7 @@ public sealed partial class GameProfiles : IGameProfiles
 
     public void Delete(GameProfile profile)
     {
-        // if (profile.IsLocked.Value) return;
+        if (profile.IsSession.Value) return;
         string profileId = profile.ProfileId.Value;
         DisposeGameSaves(profileId);
         string path = Path.Combine(DataPathManager.Profiles, profileId);
@@ -89,12 +89,15 @@ public sealed partial class GameProfiles : IGameProfiles
 
     // ---------------- load ----------------
 
-    public void LoadProfiles()
+    public void LoadProfiles(bool isCreateInitProfiles = false)
     {
         DisposeAllGameSaves();
         _profiles.Clear();
         LoadFromDirectory(DataPathManager.Profiles);
-        CreateInitProfiles();
+        if (isCreateInitProfiles)
+        {
+            CreateInitProfiles();
+        }
     }
 
     /// <summary>

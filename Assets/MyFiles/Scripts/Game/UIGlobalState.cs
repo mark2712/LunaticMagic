@@ -10,6 +10,8 @@ namespace UI
         public readonly ReactiveProperty<bool> Loading = new(false);
         public readonly ReactiveProperty<bool> DebugMenu = new(false);
 
+        public SpawnVrm SpawnVrm = new();
+
         public void Init()
         {
             GlobalGame.InputController.GetButton(InputLayer.Inputs.F12).OnDown += _ => Profiles();
@@ -20,6 +22,7 @@ namespace UI
             DebugMenu.Value = !DebugMenu.Value;
             if (DebugMenu.Value)
             {
+                // GlobalGame.Session.CreateSave(GameSaveTypes.Quick, "");
                 GlobalGame.Profiles.LoadProfiles();
             }
             else

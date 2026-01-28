@@ -3,6 +3,7 @@ using UnityEngine;
 
 public static class DataPathManager
 {
+    // C:\Users\mark2\AppData\LocalLow\MadLun\LunaticMagic\AllData
     public static string Base => EnsureDirectory(Path.Combine(Application.persistentDataPath, "AllData")); // Основной путь к папке AllData
 
     public static string ModelsVRM => EnsureDirectory(Path.Combine(Base, "ModelsVRM"));

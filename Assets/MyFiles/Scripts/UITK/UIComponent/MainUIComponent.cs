@@ -122,7 +122,6 @@ namespace UITK
             }
             Children.Clear();
 
-            LocalizationDispose();
             Destroy();
 
             EventsDispose();
@@ -136,6 +135,10 @@ namespace UITK
             // Удаление View из UI Toolkit
             View?.RemoveFromHierarchy();
             View = null;
+
+            ResourcesVisualTreeAssetDispose();
+            // ResourcesStyleSheetDispose();
+            LocalizationDispose();
         }
     }
 }

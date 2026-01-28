@@ -9,7 +9,7 @@ namespace ResourceSystem
         public string DictKey { get; private set; }
         public string ResourceKey { get; private set; }
 
-        private readonly TextLocalizationService _service;
+        private readonly ITextLocalizationService _service;
 
         private readonly string _currentLang;
         private readonly string _baseLang;
@@ -18,7 +18,7 @@ namespace ResourceSystem
         private IResourceBinding<string> _fallback;
         private bool _disposed;
 
-        public TextTwoLangLocalizationBinding(TextLocalizationService service, string currentLang, string baseLang, string resourceKey, string dictKey)
+        public TextTwoLangLocalizationBinding(ITextLocalizationService service, string currentLang, string baseLang, string resourceKey, string dictKey)
         {
             _service = service;
             ResourceKey = resourceKey;

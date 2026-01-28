@@ -8,7 +8,6 @@ namespace UITK
     /// </summary>
     public class UIManager
     {
-        private const string UIDocumentPrefabPath = "Prefabs/UITK/RootUIDocument";
         public GameObject UIDocumentRoot { get; private set; }
         public UIComponent RootComponent { get; private set; }
 
@@ -42,7 +41,8 @@ namespace UITK
         /// </summary>
         private void CreateRuntimeUIDocumentRoot()
         {
-            var prefab = PrefabManager.Load(UIDocumentPrefabPath);
+            // var prefab = ResourceManager.ResourcesGameObject.Bind("Prefabs/UITK/RootUIDocument").Resource;
+            var prefab = ResourceManager.AddressableGameObject.Bind("Assets/MyFiles/UITK/RootUIDocument.prefab").Resource;
             UIDocumentRoot = Object.Instantiate(prefab);
             Object.DontDestroyOnLoad(UIDocumentRoot);
         }

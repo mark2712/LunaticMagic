@@ -2,20 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-
-public static class SystemProfileIds
-{
-    public const string SystemLoad = "SystemLoad";
-    public const string SystemDebug = "SystemDebug";
-}
-
 public sealed partial class GameProfiles : IGameProfiles
 {
-
     private List<GameProfile> GetInitProfiles()
     {
         List<GameProfile> profiles = new()
         {
+            ProfileFabric("System Main Menu", SystemProfileIds.SystemMainMenu, ProfileTypes.System),
             ProfileFabric("System Load", SystemProfileIds.SystemLoad, ProfileTypes.System),
             ProfileFabric("System Debug", SystemProfileIds.SystemDebug, ProfileTypes.System),
         };
@@ -54,7 +47,14 @@ public sealed partial class GameProfiles : IGameProfiles
         string profileId = profile.ProfileId.Value;
         if (_profiles.ContainsKey(profileId))
         {
-            Logger.Warning($"Профиль {profileId} уже существует, сейчас профиль обновится");
+            if (profile.ProfileType.Value == ProfileTypes.System)
+            {
+                // Logger.Warning($"Системный профиль {profileId} уже существует, сейчас профиль обновится");
+            }
+            else
+            {
+                Logger.Warning($"Профиль {profileId} уже существует, сейчас профиль обновится");
+            }
             return Update(_profiles[profileId]);
         }
 

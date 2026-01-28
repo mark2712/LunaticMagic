@@ -1,0 +1,31 @@
+
+.lang-dropdown {
+    width: 200px;
+}
+
+.lang-current {
+    width: 100%;
+    text-align: left;
+}
+
+.lang-dropdown-list {
+    position: absolute;
+    background-color: #222;
+    border-radius: 4px;
+    margin-top: 4px;
+    z-index: 10;
+}
+
+.lang-dropdown-list.hidden {
+    display: none;
+}
+
+.lang-dropdown-list Button {
+    width: 100%;
+    text-align: left;
+    padding: 6px 10px;
+}
+
+.lang-dropdown-list Button.selected {
+    background-color: #4c7cff;
+}

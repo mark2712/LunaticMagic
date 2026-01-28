@@ -5,17 +5,16 @@ namespace ResourceSystem
         public virtual TResource Resource { get; }
         public string Key { get; }
 
-        private readonly ResourceManager<TResource> _manager;
+        private readonly ResourceController<TResource> _manager;
         private bool _disposed;
 
-        public ResourceBinding(ResourceManager<TResource> manager, ResourceAsset<TResource> asset)
+        public ResourceBinding(ResourceController<TResource> manager, ResourceAsset<TResource> asset)
         {
             _manager = manager;
             Key = asset.Key;
             Resource = asset.Resource;
 
             asset.RefCount++;
-            asset.UpdateLastUseTime();
         }
 
         public void Dispose()

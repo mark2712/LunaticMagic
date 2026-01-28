@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../../../UIElementsSchema/UIElements.xsd"
+>
+    <engine:VisualElement class="section">
+        <engine:Label text="Профили" class="section-title" />
+
+        <engine:VisualElement name="SaveButtonContainer" />
+
+        <engine:Label text="Создать профиль" class="section-title" />
+        <engine:VisualElement name="ProfilesFormContainer" />
+
+        <!-- <engine:Label text="Текущий профиль" class="section-title" /> -->
+        <engine:VisualElement name="NowProfileContainer" />
+
+        <engine:Label text="Список профилей" class="section-title" />
+        <engine:VisualElement name="ProfilesListContainer" />
+
+    </engine:VisualElement>
+
+</engine:UXML>
