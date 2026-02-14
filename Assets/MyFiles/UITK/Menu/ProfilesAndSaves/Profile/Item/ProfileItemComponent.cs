@@ -24,7 +24,7 @@ namespace UITK
                 _expanded.Value = !_expanded.Value;
                 if (_expanded.Value)
                 {
-                    GlobalGame.Profiles.LoadSaves(Props.ProfileId.Value);
+                    UIGlobalState.Profiles.LoadSaves(Props.ProfileId.Value);
                 }
             });
         }

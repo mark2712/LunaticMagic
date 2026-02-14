@@ -4,9 +4,9 @@ using UnityEngine.UIElements;
 
 namespace UITK
 {
-    public class UIComponentDebugMenu : UIComponent<Type>
+    public class DebugMenuComponent : UIComponent<Type>
     {
-        public UIComponentDebugMenu(Type props, string key = "0") : base(props, key) { }
+        public DebugMenuComponent(Type props, string key = "0") : base(props, key) { }
         public VisualTreeAsset VrmDebug;
         public VisualTreeAsset LocalizationModulesDebug;
         public VisualTreeAsset LanguageSelect;

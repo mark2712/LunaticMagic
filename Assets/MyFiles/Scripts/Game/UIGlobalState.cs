@@ -1,35 +1,38 @@
 using UnityEngine;
 using UniRx;
+using ResourceSystem;
 
-namespace UI
+
+public class UIGlobalState
 {
-    public class UIGlobalState
+    public readonly ReactiveProperty<bool> MainMenu = new(false);
+    public readonly ReactiveProperty<bool> Console = new(false);
+    public readonly ReactiveProperty<bool> Loading = new(false);
+    public readonly ReactiveProperty<bool> DebugMenu = new(false);
+
+    private static IResourceBinding<IGameProfiles> _profiles;
+    public static IGameProfiles Profiles => _profiles.Resource;
+
+
+    public SpawnVrm SpawnVrm = new();
+
+    public void Init()
     {
-        public readonly ReactiveProperty<bool> MainMenu = new(false);
-        public readonly ReactiveProperty<bool> Console = new(false);
-        public readonly ReactiveProperty<bool> Loading = new(false);
-        public readonly ReactiveProperty<bool> DebugMenu = new(false);
+        GlobalGame.InputController.GetButton(InputLayer.Inputs.F12).OnDown += _ => OpenDebugMenu();
+    }
 
-        public SpawnVrm SpawnVrm = new();
-
-        public void Init()
+    public void OpenDebugMenu()
+    {
+        DebugMenu.Value = !DebugMenu.Value;
+        if (DebugMenu.Value)
         {
-            GlobalGame.InputController.GetButton(InputLayer.Inputs.F12).OnDown += _ => Profiles();
+            _profiles ??= ResourceManager.Profiles.Bind("profiles");
         }
-
-        public void Profiles()
+        else
         {
-            DebugMenu.Value = !DebugMenu.Value;
-            if (DebugMenu.Value)
-            {
-                // GlobalGame.Session.CreateSave(GameSaveTypes.Quick, "");
-                GlobalGame.Profiles.LoadProfiles();
-            }
-            else
-            {
-                GlobalGame.Profiles.Dispose();
-            }
-            // Debug.Log($"F12 {DebugMenu.Value}");
+            _profiles?.Dispose();
+            _profiles = null;
         }
+        // Debug.Log($"F12 {DebugMenu.Value}");
     }
 }

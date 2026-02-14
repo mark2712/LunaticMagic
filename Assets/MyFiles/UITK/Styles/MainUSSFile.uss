@@ -1,3 +1,27 @@
+/* Основные цвета */
+:root {
+    --am-deep: #241033;      /* глубокий низ */
+    --am-base: #3B1F58;      /* средний между #3C1C4D и #3B2162 */
+    --am-mid:  #4C2A78;      /* средний фиолетовый */
+    --am-hi:   #6A3AA6;      /* подсветка */
+    --am-glow: #B47CFF;      /* магический glow */
+
+    --am-1: #170624;
+
+    --gold-1:  #F3D48A;      /* светлое золото */
+    --gold-2:  #B8862B;      /* тёмное золото */
+    --gold-3:  #6B4A12;      /* очень тёмное золото */
+
+    --gold-4:  #D6BB5C;
+    --gold-5:  #b8932b;
+    --gold-6:  #957B27;
+    --gold-7:  #D6AD2B;
+
+    --text: #f7f7ed;
+    --text-dim: #C9B7E6;
+}
+
+
 .root {
     flex-grow: 1;
     flex-direction: column;
@@ -15,7 +39,7 @@
 .box {
     width: 100px;
     height: 100px;
-    background-color: rgb(80, 80, 80);
+    background-color: #3A245C;
 }
 
 .root2{
@@ -24,5 +48,3 @@
     flex-grow: 1;
     flex-direction: column;
 }
-
-

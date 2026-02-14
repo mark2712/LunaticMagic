@@ -1,4 +1,4 @@
-
+/* 
 .lang-dropdown {
     width: 200px;
 }
@@ -28,4 +28,4 @@
 
 .lang-dropdown-list Button.selected {
     background-color: #4c7cff;
-}
+} */

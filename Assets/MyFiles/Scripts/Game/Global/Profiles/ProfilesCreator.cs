@@ -8,9 +8,9 @@ public sealed partial class GameProfiles : IGameProfiles
     {
         List<GameProfile> profiles = new()
         {
-            ProfileFabric("System Main Menu", SystemProfileIds.SystemMainMenu, ProfileTypes.System),
-            ProfileFabric("System Load", SystemProfileIds.SystemLoad, ProfileTypes.System),
-            ProfileFabric("System Debug", SystemProfileIds.SystemDebug, ProfileTypes.System),
+            ProfileFabric("System Main Menu",  ProfileTypes.System, DifficultyGame.Normal, SystemProfileIds.SystemMainMenu),
+            ProfileFabric("System Load", ProfileTypes.System, DifficultyGame.Normal,SystemProfileIds.SystemLoad),
+            ProfileFabric("System Debug", ProfileTypes.System, DifficultyGame.Normal, SystemProfileIds.SystemDebug),
         };
         return profiles;
     }
@@ -24,22 +24,20 @@ public sealed partial class GameProfiles : IGameProfiles
         }
     }
 
-    private GameProfile ProfileFabric(string name, string profileId, ProfileTypes type)
+    private GameProfile ProfileFabric(string name, ProfileTypes type, DifficultyGame difficulty, string profileId = null)
     {
         var profile = new GameProfile(name).ChangeProfileType(type);
-        profile.ProfileId.Value = profileId;
+        if (profileId != null)
+        {
+            profile.ProfileId.Value = profileId;
+        }
+        profile.Difficulty.Value = difficulty;
         return profile;
     }
 
-    public GameProfile Create(string name, ProfileTypes type)
+    public GameProfile Create(string name, ProfileTypes type, DifficultyGame difficulty, string profileId = null)
     {
-        string profileId = GeneratorId.GenerateId(name);
-        return Create(name, profileId, type);
-    }
-
-    public GameProfile Create(string name, string profileId, ProfileTypes type)
-    {
-        return Create(ProfileFabric(name, profileId, type));
+        return Create(ProfileFabric(name, type, difficulty, profileId));
     }
 
     public GameProfile Create(GameProfile profile)

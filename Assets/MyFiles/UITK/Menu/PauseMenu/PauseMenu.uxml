@@ -5,5 +5,29 @@
     xmlns:editor="UnityEditor.UIElements"
     xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
 >
-    
+    <engine:VisualElement class="Pause_menu">
+        <engine:VisualElement name="MainLine1" class="background_vertical_line background_2">
+            <engine:Button name="" text="Продолжить" />
+            <engine:Button name="" text="Последнее сохранение " />
+            <engine:Button name="" text="Сохранить / Загрузка" />
+            <engine:Button name="" text="Настройки" />
+            <engine:Button name="" text="В главное меню" />
+            <engine:Button name="" text="Выход" />
+            <engine:VisualElement class="br"/>
+            <engine:VisualElement name="DifficultyGame" class="DifficultyGame">
+                <!--  -->
+            </engine:VisualElement>
+            <engine:VisualElement name="Lang" class="Lang">
+                <!--  -->
+            </engine:VisualElement>
+        </engine:VisualElement>
+        <engine:VisualElement name="Screen" class="background_1">
+            <engine:VisualElement name="SaveLoad" class="settings">
+                
+            </engine:VisualElement>
+            <engine:VisualElement name="Settings" class="settings">
+                
+            </engine:VisualElement>
+        </engine:VisualElement>
+    </engine:VisualElement>
 </engine:UXML>

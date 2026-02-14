@@ -41,7 +41,7 @@ namespace UITK
             // if (MainMenuState.Value) { Node<ComponentMainMenu, Type>(null, MainMenu, View, "0"); }
             // if (LoadingState.Value) { Node<ComponentLoading, Type>(null, Loading, View, "0"); }
             // if (ConsoleState.Value) { Node<ComponentConsole, Type>(null, Console, View, "0"); }
-            if (DebugMenuState.Value) { Node<UIComponentDebugMenu, Type>(null, DebugMenu, View, "0"); }
+            if (DebugMenuState.Value) { Node<DebugMenuComponent, Type>(null, DebugMenu, View, "0"); }
         }
 
         private void RootVisualElementStyles(VisualElement visualElement)

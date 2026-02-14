@@ -30,6 +30,9 @@ public static class ResourceManager
 {
     public static ResourceScopeManager ScopeManager = new();
 
+    // Профили
+    public static IResourceController<IGameProfiles> Profiles = new ProfilesResourceController();
+
     // Localization
     public static ILocalization Localization { get; private set; } = new LocalizationManager();
 

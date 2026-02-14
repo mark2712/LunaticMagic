@@ -69,14 +69,15 @@ public class GameSession : IGameSession
 
         // 2. Создать сохранение
         GameSave gameSave = new();
-        GlobalGame.Profiles.LoadProfiles(); // загрузить профили
-        IGameSaves gameSaves = GlobalGame.Profiles.LoadSaves(Profile.ProfileId.Value); // загрузить сохранения профиля
-        gameSaves.Create(gameSave); // создать папку для сохранения сессии
-        GlobalGame.Profiles.Dispose(); // закрыть профили (и их сохранения) чтобы не висели в памяти
+        using var profilesBinding = ResourceManager.Profiles.Bind("profiles"); // загрузить профили
+        var profiles = profilesBinding.Resource;
+        IGameSaves gameSaves = profiles.LoadSaves(Profile.ProfileId.Value); // загрузить сохранения профиля
+        gameSave = gameSaves.Create(gameSave); // создать папку для сохранения сессии
+        SavePath = DataPathManager.GameProfileSave(Profile.ProfileId.Value, gameSave.SaveId.Value); // новая папа с сохранением
 
         // 3. Записать данные в рантайм папку
         GameSessionData gameSessionData = Save();
-        SaveData.Save(gameSessionData, "GameSessionData", SessionPath);
+        SaveData.Save(gameSessionData, SessionPath, "GameSessionData");
         // записать gameSessionData в файл SessionPath/GameSessionData.json
         // в будущем тут нужно будет не забыть Entities.SaveAll(SessionPath);
         // потом скопировать рантйм папку DataPathManager.CopyDirectory(SessionPath, savePath);
@@ -120,11 +121,11 @@ public class GameSession : IGameSession
 
     public GameSessionData Save()
     {
-        GameSessionData gameSessionData = new()
+        GameSessionData data = new()
         {
             LocalGameTimeData = LocalTime.Save()
         };
-        return gameSessionData;
+        return data;
     }
 
 
@@ -161,7 +162,20 @@ public class GameSession : IGameSession
     {
         if (Profile.Difficulty.Value == difficulty) return;
         Profile.Difficulty.Value = difficulty;
-        GlobalGame.Profiles.Update(Profile);
+
+        using var profilesBinding = ResourceManager.Profiles.Bind("profiles"); // загрузить профили
+        var profiles = profilesBinding.Resource;
+        profiles.Update(Profile);
+    }
+
+    public void SetName(string name)
+    {
+        if (Profile.Name.Value == name) return;
+        Profile.Name.Value = name;
+
+        using var profilesBinding = ResourceManager.Profiles.Bind("profiles"); // загрузить профили
+        var profiles = profilesBinding.Resource;
+        profiles.Update(Profile);
     }
 }
 

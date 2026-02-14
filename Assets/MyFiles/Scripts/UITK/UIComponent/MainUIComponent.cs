@@ -27,6 +27,9 @@ namespace UITK
         protected List<UIComponent> OldNodes = new();
         protected List<UIComponent> NewNodes = new();
 
+        private bool _isDisposed;
+        public bool IsDisposed => _isDisposed;
+
         public virtual void Init() { }
         public virtual void Render() { }
         public virtual void Destroy() { }
@@ -113,6 +116,9 @@ namespace UITK
 
         public void Dispose()
         {
+            if (_isDisposed) return;
+            _isDisposed = true;
+
             CleanupNodes();
 
             foreach (var dict in Children.Values)
@@ -128,7 +134,7 @@ namespace UITK
 
             if (Parent != null)
             {
-                var dict = Parent.Children[GetType()];
+                Dictionary<string, UIComponent> dict = Parent.Children[GetType()];
                 dict.Remove(Key);
             }
 
@@ -137,7 +143,6 @@ namespace UITK
             View = null;
 
             ResourcesVisualTreeAssetDispose();
-            // ResourcesStyleSheetDispose();
             LocalizationDispose();
         }
     }

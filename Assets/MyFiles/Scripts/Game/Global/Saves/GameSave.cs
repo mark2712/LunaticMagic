@@ -15,6 +15,7 @@ public class GameSave
     public readonly ReactiveProperty<DateTime> CreatedAt = new(DateTime.Now);
     public readonly ReactiveProperty<string> Comment = new("");
     public readonly ReactiveProperty<GameSaveTypes> SaveType = new(GameSaveTypes.System);
+    public readonly ReactiveProperty<bool> IsArchive = new(false);
 
 
     public GameSave(string comment = "")
@@ -40,18 +41,20 @@ public class GameSave
         return new GameSaveData
         {
             SaveId = SaveId.Value,
-            CreatedAt = CreatedAt.Value,
+            CreatedAt = SaveData.Date(CreatedAt.Value),
             Comment = Comment.Value,
             SaveType = SaveType.Value,
+            IsArchive = IsArchive.Value,
         };
     }
 
     public void Load(GameSaveData data)
     {
         SaveId.Value = data.SaveId;
-        CreatedAt.Value = data.CreatedAt;
+        CreatedAt.Value = SaveData.Date(data.CreatedAt);
         Comment.Value = data.Comment;
         SaveType.Value = data.SaveType;
+        IsArchive.Value = data.IsArchive;
     }
 }
 
@@ -59,7 +62,8 @@ public class GameSave
 public class GameSaveData
 {
     public string SaveId = GameSave.GenerateSaveId();
-    public DateTime CreatedAt = DateTime.Now;
+    public string CreatedAt = SaveData.Date(DateTime.Now);
     public string Comment = "";
     public GameSaveTypes SaveType = GameSaveTypes.System;
+    public bool IsArchive = false;
 }

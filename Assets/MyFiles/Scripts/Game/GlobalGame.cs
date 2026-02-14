@@ -1,5 +1,6 @@
 using System;
 using InputLayer;
+using UniRx;
 using UnityEngine;
 
 public static class GlobalGame
@@ -7,25 +8,35 @@ public static class GlobalGame
     public static BootstrapGlobalGame Bootstrap;
     public static readonly UITK.UIController UIController = new(); // отвечает за рендер компонентов (в LateUpdate)
     public static readonly UITK.UIManager UIManager = new(); // отвечает создание CanvasPrefab и Root компонент
-    public static UI.UIGlobalState UIGlobalState = new(); // простое состояние UI компонентов для тестирования
+    public static UIGlobalState UIGlobalState = new(); // простое состояние UI компонентов для тестирования
 
     public static IInputController InputController { get; private set; }
 
     public static GlobalGameSettings Settings = new();
-    public static IGameProfiles Profiles = new GameProfiles();
+    // public static IGameProfiles Profiles = new GameProfiles();
     public static GameSession Session;
+    public static ReactiveProperty<string> SessionProfuleId = new("");
 
     static void GlobalGameInit()
     {
         Load();
         InputController = new InputController();
 
-        Profiles.LoadProfiles(true); // если флаг true то будут созданы системные профили
-        // Session = new(Profiles.Profiles[SystemProfileIds.SystemDebug]);
-        Session = new(Profiles.Profiles["test1_ff28c2e80cd9"]);
-        Profiles.Dispose();
+        using var profilesBinding = ResourceManager.Profiles.Bind("profiles"); // загрузить профили
+        var profiles = profilesBinding.Resource;
+        // Session = new(profiles.Profiles[SystemProfileIds.SystemMainMenu]);
+        Session = new(profiles.Profiles["test1_ff28c2e80cd9"]);
 
         Save();
+    }
+
+    public static void ChangeSession(GameProfile gameProfile, GameSave gameSave = null)
+    {
+        Session?.Dispose();
+        Session = new(gameProfile, gameSave);
+        SessionProfuleId.Value = gameProfile.ProfileId.Value;
+        Session.Init();
+        Debug.Log($"Сессия загружена {SessionProfuleId}");
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]

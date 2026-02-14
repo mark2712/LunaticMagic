@@ -16,7 +16,7 @@ namespace UITK
 
         public override void Render()
         {
-            var profiles = Use(GlobalGame.Profiles.Profiles);
+            var profiles = Use(UIGlobalState.Profiles.Profiles);
             var container = View.Q("ProfilesList");
 
             foreach (var kv in profiles)
