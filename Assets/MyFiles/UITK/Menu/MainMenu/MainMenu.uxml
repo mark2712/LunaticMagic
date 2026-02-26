@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+>
+    <engine:VisualElement name="MainMenu" class="Main_menu">
+        <engine:VisualElement name="MainLine1" class="background_vertical_line line_1 background_2">
+            <engine:VisualElement name="Buttons" class="main_menu_buttons">
+                <engine:VisualElement class="buttons_line">
+                    <engine:Button name="LoadButton" class="button" text="Новая игра" />
+                    <engine:Button name="Settings" class="button" text="Нстройки" />
+                </engine:VisualElement>
+                <engine:VisualElement class="buttons_line">
+                    <engine:Button name="Site" class="button" text="Сайт" />
+                    <engine:Button name="Exit" class="button" text="Выход" />
+                </engine:VisualElement>
+            </engine:VisualElement>
+            <engine:VisualElement name="Profiles" class="main_menu_profiles">
+                <engine:VisualElement name="Profile" class="profile">
+                    <engine:Label name="Name" class="text_1"/>
+                    <engine:VisualElement name="ProfileControls" class="profile_controls">
+                        <engine:Label name="Date" class="text_1"/>
+                        <engine:Button name="LoadButton" class="button" text="Продолжить" />
+                        <engine:Button name="OpenLoadButton" class="button" text="Загрузить" />
+                    </engine:VisualElement>
+                </engine:VisualElement>
+            </engine:VisualElement>
+        </engine:VisualElement>
+        <engine:VisualElement name="MainLine2" class="background_vertical_line line_2 background_2"> <!-- sort: IsArchive, CreatedAt -->
+            <engine:VisualElement name="Profile" class="profile">
+                <engine:VisualElement name="ProfileForm" class="profile_form"> <!-- показывать только если этот профиль IsSession == false -->
+                    <engine:Button name="ArchiveButton" text="Архивировать профиль" />
+                    <engine:Button name="DeleteButton" text="Удалить профиль навсегда" /> <!-- зависит от IsArchive -->
+                    <engine:Button name="RestoreButton" text="Восстановить" /><engine:VisualElement class="br"/>
+                    <engine:TextField name="NameField" label="Название" placeholder-text="Имя персонажа" /><engine:VisualElement class="br"/>
+                    <engine:Label text="Сложность" /><engine:VisualElement name="DifficultyContainer" /><engine:VisualElement class="br"/>
+                    <engine:Button name="SendButton" text="Изменить профиль" />
+                </engine:VisualElement>
+            </engine:VisualElement>
+            <engine:VisualElement name="Saves" class="saves"> <!-- sort: IsArchive, CreatedAt -->
+                <engine:VisualElement name="Save" class="save">
+                    <engine:VisualElement class="save_line container_row">
+                        <engine:VisualElement name="Edit" class="container_row">
+                            <engine:Button name="ArchiveButton" text="Удалить" />
+                            <engine:Button name="DeleteButton" text="Удалить окончательно" /> <!-- зависит от IsArchive -->
+                            <engine:Button name="RestoreButton" text="Восстановить" />
+                            <engine:Button name="EditButton" text="Изменить" />
+                        </engine:VisualElement>
+                        <engine:VisualElement name="LoadButton" class="container_row">
+                            <engine:Label name="SaveType" class="cell type"/>
+                            <engine:Label name="CreatedAt" class="cell date"/>
+                            <engine:Label name="Comment" class="cell comment"/>
+                        </engine:VisualElement>
+                    </engine:VisualElement>
+                    <engine:VisualElement name="Form" class="container_row">
+                        <engine:TextField name="NameField" label="Название" placeholder-text="Название" />
+                        <engine:Button name="EditButton" text="Изменить" />
+                    </engine:VisualElement>
+                    <engine:VisualElement class="hr"/>
+                </engine:VisualElement>
+            </engine:VisualElement>
+        </engine:VisualElement>
+        <engine:VisualElement name="Screen" class="background_1">
+            <engine:VisualElement name="Settings" class="settings">
+                <!-- вкладка с настройками игры -->
+                <engine:VisualElement name="SettingsControl" class="SettingsControl">
+                    <engine:Button name="SettingsApply" text="Применить" />
+                    <engine:Button name="SettingsClose" text="Назад" />
+                </engine:VisualElement>
+                <engine:VisualElement name="SettingsTab" class="tab">
+                    <engine:VisualElement name="TabHeader" class="tab_header">
+                        <engine:Button name="TabHeaderButton" text="Вкладка" />
+                    </engine:VisualElement>
+                    <engine:VisualElement name="TabBody" class="tab_body">
+
+                    </engine:VisualElement>
+                </engine:VisualElement>
+            </engine:VisualElement>
+            <engine:VisualElement name="Other" class="settings">
+                <!-- в будущем можно сделать другие экраны, например аввторы-->
+            </engine:VisualElement>
+            <engine:VisualElement name="Popups" class="popups">
+                <engine:VisualElement name="Popup" class="popup"></engine:VisualElement>
+            </engine:VisualElement>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

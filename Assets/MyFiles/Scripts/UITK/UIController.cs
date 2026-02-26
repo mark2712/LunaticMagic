@@ -23,13 +23,14 @@ namespace UITK
         /// Во время RenderAll нельзя мутировать _componentsToRender, но пока идёт RenderAll могут появиться новые компоненты для рендера. 
         /// Поэтому нужно перенести все компоненты в очереди на рендер в _componentsToRenderNow который не меняется вовремя рендера. 
         /// </summary>
-        private List<UIComponent> _componentsToRenderNow; 
+        private List<UIComponent> _componentsToRenderNow;
 
 
         // добавить компонент в очередь на рендер
         public void ScheduleRender(UIComponent component)
         {
             if (component == null) return;
+            if (component.IsDisposed) return;
 
             // быстрый тест на дубль
             if (_scheduledSet.Contains(component)) return;

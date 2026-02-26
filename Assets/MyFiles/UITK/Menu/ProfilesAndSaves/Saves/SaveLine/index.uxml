@@ -1,0 +1,11 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <engine:VisualElement class="save-line container_row">
+        <engine:VisualElement name="LoadButtonContainer" class="cell load"/>
+        <engine:Label name="Comment" class="cell comment"/>
+        <engine:Label name="SaveId" class="cell id"/>
+        <engine:Label name="CreatedAt" class="cell date"/>
+        <engine:Label name="SaveType" class="cell type"/>
+        <!-- <engine:Button name="LoadButton" text="Загрузить игру" /> -->
+    </engine:VisualElement>
+    <engine:VisualElement class="hr"/>
+</engine:UXML>

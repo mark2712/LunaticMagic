@@ -42,9 +42,10 @@ namespace UITK
                 {
                     RemoveNode(component);
                 }
+                // RemoveNode(component);
             }
 
-            var newComponent = (TNewUIComponent)Activator.CreateInstance(typeof(TNewUIComponent), props, key)!;
+            TNewUIComponent newComponent = (TNewUIComponent)Activator.CreateInstance(typeof(TNewUIComponent), props, key);
             newComponent.AddParent(this).AddTemplate(template, container);
             childKeyAndComponent[key] = newComponent;
 

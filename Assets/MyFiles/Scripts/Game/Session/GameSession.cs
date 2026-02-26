@@ -11,11 +11,10 @@ public interface IGameSession : IDisposable
 {
     string SessionId { get; }
     GameProfile Profile { get; }
-    // GameSessionData RuntimeGameSessionData { get; } // берём из gameSave если он есть, если нет то тут всегда будут init данные
 
-    void Init(); // Enter, start
+    void Init(NewGame.INewGameDataBuilder newGame); // Enter, start
     // за паузу отвечает пауза а не сессия
-    // Dispose - Exit, stop
+    // Dispose - это Exit, stop
 
     void CreateSave(GameSaveTypes type, string comment); // создаст новый GameSave GameSaves.Create() и сохранит данные в него
 
@@ -33,8 +32,9 @@ public class GameSession : IGameSession
     public string SessionPath { get; private set; }
     public string SavePath { get; private set; }
     public GameProfile Profile { get; private set; }
-    // public GameSessionData RuntimeGameSessionData { get; private set; } = new();
+
     public LocalGameTime LocalTime = new();
+    public Story.StoryState StoryState = new();
 
     public GameSession(GameProfile gameProfile, GameSave gameSave = null)
     {
@@ -53,14 +53,15 @@ public class GameSession : IGameSession
         }
     }
 
-    public void Init()
+    public void Init(NewGame.INewGameDataBuilder newGame)
     {
         // 3. Загружаем данные сессии из рантайм-папки
-        GameSessionData RuntimeGameSessionData = SaveData.Load<GameSessionData>(SessionPath, "GameSessionData") ?? new();
+        GameSessionData RuntimeGameSessionData = SaveData.Load<GameSessionData>(SessionPath, "GameSessionData") ?? newGame.Build(new());
         Load(RuntimeGameSessionData);
 
-        // удалить все папки из Sessions кроме папки с текущей сессией
-        CleanupSessionsDirectory();
+        CleanupSessionsDirectory(); // удалить все папки из Sessions кроме папки с текущей сессией
+
+        StoryState.RunInitExecuteScripts(); // выполнить начальные скрипты для данной сессии
     }
 
     public void CreateSave(GameSaveTypes type, string comment)
@@ -69,22 +70,19 @@ public class GameSession : IGameSession
 
         // 2. Создать сохранение
         GameSave gameSave = new();
-        GlobalGame.Profiles.LoadProfiles(); // загрузить профили
-        IGameSaves gameSaves = GlobalGame.Profiles.LoadSaves(Profile.ProfileId.Value); // загрузить сохранения профиля
-        gameSaves.Create(gameSave); // создать папку для сохранения сессии
-        GlobalGame.Profiles.Dispose(); // закрыть профили (и их сохранения) чтобы не висели в памяти
+        using var profilesBinding = ResourceManager.Profiles.Bind("profiles"); // загрузить профили
+        var profiles = profilesBinding.Resource;
+        IGameSaves gameSaves = profiles.LoadSaves(Profile.ProfileId.Value); // загрузить сохранения профиля
+        gameSave = gameSaves.Create(gameSave); // создать папку для сохранения сессии
+        SavePath = DataPathManager.GameProfileSave(Profile.ProfileId.Value, gameSave.SaveId.Value); // новая папа с сохранением
 
         // 3. Записать данные в рантайм папку
         GameSessionData gameSessionData = Save();
-        SaveData.Save(gameSessionData, "GameSessionData", SessionPath);
-        // записать gameSessionData в файл SessionPath/GameSessionData.json
-        // в будущем тут нужно будет не забыть Entities.SaveAll(SessionPath);
-        // потом скопировать рантйм папку DataPathManager.CopyDirectory(SessionPath, savePath);
+        SaveData.Save(gameSessionData, SessionPath, "GameSessionData");
 
         // 4. Дать другим системам сохраниться
         // Entities.SaveAll(SessionPath);
         // World.Save(SessionPath);
-        // Quests.Save(SessionPath);
 
         // 5. Скопировать рантайм → сейв
         DataPathManager.CopyDirectory(SessionPath, SavePath);
@@ -111,22 +109,6 @@ public class GameSession : IGameSession
     {
 
     }
-
-
-    public void Load(GameSessionData data)
-    {
-        LocalTime.Load(data.LocalGameTimeData);
-    }
-
-    public GameSessionData Save()
-    {
-        GameSessionData gameSessionData = new()
-        {
-            LocalGameTimeData = LocalTime.Save()
-        };
-        return gameSessionData;
-    }
-
 
     public void Dispose()
     {
@@ -161,7 +143,37 @@ public class GameSession : IGameSession
     {
         if (Profile.Difficulty.Value == difficulty) return;
         Profile.Difficulty.Value = difficulty;
-        GlobalGame.Profiles.Update(Profile);
+
+        using var profilesBinding = ResourceManager.Profiles.Bind("profiles"); // загрузить профили
+        var profiles = profilesBinding.Resource;
+        profiles.Update(Profile);
+    }
+
+    public void SetName(string name)
+    {
+        if (Profile.Name.Value == name) return;
+        Profile.Name.Value = name;
+
+        using var profilesBinding = ResourceManager.Profiles.Bind("profiles"); // загрузить профили
+        var profiles = profilesBinding.Resource;
+        profiles.Update(Profile);
+    }
+
+
+    public void Load(GameSessionData data)
+    {
+        LocalTime.Load(data.LocalGameTimeData);
+        StoryState.Load(data.StoryStateData);
+    }
+
+    public GameSessionData Save()
+    {
+        GameSessionData data = new()
+        {
+            LocalGameTimeData = LocalTime.Save(),
+            StoryStateData = StoryState.Save()
+        };
+        return data;
     }
 }
 
@@ -170,30 +182,5 @@ public class GameSession : IGameSession
 public class GameSessionData
 {
     public LocalGameTimeData LocalGameTimeData = new();
+    public Story.StoryStateData StoryStateData = new();
 }
-
-
-
-// bool IsRunning { get; }
-// void StartSession(); // запускает сессию
-// void StopSession(); // пауза
-
-
-// void CreateSession(GameProfile gameProfile, GameSave gameSave); // создает сессию (создаёт папку, копирует данные из gameSave)
-// private void CreateSession(GameProfile gameProfile, GameSave gameSave = null) { }
-
-
-// public sealed class GameSessionProfile
-// {
-//     public string ProfileId;
-//     public ReactiveProperty<string> Name = new();
-//     public ReactiveProperty<DifficultyGame> Difficulty = new();
-// }
-
-
-// // Добавить профиль сессии
-// if (GlobalGame.Session?.Profile != null)
-// {
-//     GameProfile profile = GlobalGame.Session.Profile;
-//     _profiles[profile.ProfileId.Value] = profile;
-// }

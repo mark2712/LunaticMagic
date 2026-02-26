@@ -41,14 +41,8 @@ public sealed class GameTimeController
 
     private void Recalculate()
     {
-        bool paused =
-            (_consoleRequested && _consoleStopsGame) ||
-            _pauseRequested;
-
-        float timeScale = paused
-            ? 0f
-            : _gameTimeScale;
-
+        bool paused = (_consoleRequested && _consoleStopsGame) || _pauseRequested;
+        float timeScale = paused ? 0f : _gameTimeScale;
         Apply(paused, timeScale);
     }
 

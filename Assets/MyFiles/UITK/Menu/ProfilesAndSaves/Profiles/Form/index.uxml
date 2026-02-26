@@ -20,9 +20,7 @@
         <engine:Label text="Тип профиля" />
         <engine:VisualElement name="ProfileTypeContainer" />
 
-        <engine:Button
-            name="CreateButton"
-            text="Создать профиль" />
+        <engine:Button name="CreateButton" text="Создать профиль" />
 
     </engine:VisualElement>
 

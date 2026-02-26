@@ -22,7 +22,8 @@ namespace UITK
 
         public override void Render()
         {
-            Node<NowProfileComponent, string>(GlobalGame.Session.Profile.ProfileId.Value, _nowProfile, View.Q("NowProfileContainer"), "now_profile");
+            Node<NowProfileComponent, Type>(null, _nowProfile, View.Q("NowProfileContainer"), "now_profile");
+
             Node<SaveButtonComponent, Type>(null, _saveButton, View.Q("SaveButtonContainer"), "save_button");
             Node<CreateProfileFormComponent, Type>(null, _form, View.Q("ProfilesFormContainer"), "form");
             Node<ProfilesListComponent, Type>(null, _list, View.Q("ProfilesListContainer"), "list");

@@ -85,6 +85,7 @@ public sealed class GameSaves : IGameSaves
     {
         EnsureOpened();
         SaveSave(gameSave);
+        _saves[gameSave.SaveId.Value] = gameSave;
         Logger.Info($"Создано сохранение {gameSave.SaveId.Value}");
         return gameSave;
     }
@@ -134,5 +135,19 @@ public sealed class GameSaves : IGameSaves
     {
         if (ProfileId == null)
             throw new InvalidOperationException("GameSaves не инициализирован. Вызови LoadSaves()");
+    }
+
+    // ---------------- archive ----------------
+
+    public void Archive(GameSave save)
+    {
+        save.IsArchive.Value = true;
+        Logger.Info($"Сохранение {save.SaveId.Value} архивировано");
+    }
+
+    public void Restore(GameSave save)
+    {
+        save.IsArchive.Value = false;
+        Logger.Info($"Сохранение {save.SaveId.Value} восстановлено");
     }
 }

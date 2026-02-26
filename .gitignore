@@ -16,7 +16,7 @@
 *.opendb
 *.VC.db
 *.vrm
-
+*.meta
 
 !.gitignore
 
@@ -27,6 +27,3 @@
 
 !Assets/MyFiles/UITK
 !Assets/MyFiles/UITK/**
-
-
-*.meta

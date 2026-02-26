@@ -1,0 +1,16 @@
+/* ===== Разделители ===== */
+
+.hr {
+    height: 1px;
+    background-color: var(--gold-4);
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.br {
+    height: 8px;
+}
+
+.br_s { height: 4px; }
+.br_m { height: 12px; }
+.br_l { height: 20px; }

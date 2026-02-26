@@ -78,7 +78,8 @@ namespace UITK
             string name = _nameField.value;
             var difficulty = (DifficultyGame)Enum.GetValues(typeof(DifficultyGame)).GetValue(_difficultyGroup.value);
             var profileType = (ProfileTypes)Enum.GetValues(typeof(ProfileTypes)).GetValue(_profileTypeGroup.value);
-            GlobalGame.Profiles.Create(name, profileType).Difficulty.Value = difficulty;
+
+            UIGlobalState.Profiles.Create(name, profileType, difficulty);
         }
     }
 }

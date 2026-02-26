@@ -14,14 +14,9 @@ public sealed class LocalGameTime
     public int Hour => _worldTime.Hour;
     public int Minute => _worldTime.Minute;
 
-    public void SetPaused(bool paused)
-        => _timeController.SetPaused(paused);
-
-    public void SetConsole(bool active, bool stopGame)
-        => _timeController.SetConsole(active, stopGame);
-
-    public void SetGameTimeScale(float scale)
-        => _timeController.SetGameTimeScale(scale);
+    public void SetPaused(bool paused) => _timeController.SetPaused(paused);
+    public void SetConsole(bool active, bool stopGame) => _timeController.SetConsole(active, stopGame);
+    public void SetGameTimeScale(float scale) => _timeController.SetGameTimeScale(scale);
 
     public void Tick(float deltaTime)
     {

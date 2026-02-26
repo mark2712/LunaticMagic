@@ -1,0 +1,71 @@
+/* ===== Inputs ===== */
+
+.input {
+    background-color: var(--am-base);
+    color: var(--gold-4);
+
+    border-width: 1px;
+    border-radius: 6px;
+
+    padding-left: 10px;
+    padding-right: 10px;
+    
+    border-left-color: var(--am-mid);
+    border-right-color: var(--am-mid);
+    border-top-color: var(--am-hi);
+    border-bottom-color: var(--am-base);
+}
+
+.input:focus {
+    color: var(--gold-4);
+}
+
+.input_l {
+    height: 48px;
+    font-size: 16px;
+}
+
+.input_m {
+    height: 40px;
+    font-size: 14px;
+}
+
+.input_s {
+    height: 32px;
+    font-size: 13px;
+}
+
+.input_xs {
+    height: 26px;
+    font-size: 12px;
+}
+
+
+/* ===== Dropdown base ===== */
+
+.dropdown {
+    height: 40px;
+    color: var(--am-deep);
+}
+
+
+.dropdown_l {
+    height: 48px;
+    font-size: 16px;
+}
+
+.dropdown_m {
+    height: 40px;
+    font-size: 14px;
+}
+
+.dropdown_s {
+    height: 32px;
+    font-size: 13px;
+}
+
+.dropdown_xs {
+    height: 26px;
+    font-size: 12px;
+}
+

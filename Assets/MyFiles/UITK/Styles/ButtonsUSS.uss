@@ -1,0 +1,78 @@
+/* ===== Buttons ===== */
+.button {
+    background-color: var(--am-base);
+    color: var(--gold-4);
+
+    border-radius: 12px;
+    padding-left: 18px;
+    padding-right: 18px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+
+    border-width: 3px;
+
+    border-left-color: var(--gold-2);
+    border-right-color: var(--gold-2);
+    border-top-color: var(--gold-1);
+    border-bottom-color: var(--gold-3);
+
+    -unity-font-style: bold;
+    background-image: none;
+}
+
+/* hover */
+.unity-button.button:hover {
+    background-color: var(--am-deep);
+    background-image: none;
+    color: var(--text);
+
+    border-left-color: var(--gold-2);
+    border-right-color: var(--gold-2);
+    border-top-color: var(--gold-1);
+    border-bottom-color: var(--gold-3);
+}
+
+
+.button_gold {
+    background-color: var(--gold-7);
+    color: var(--am-deep);
+
+    border-left-color: var(--gold-5);
+    border-right-color: var(--gold-5);
+    border-top-color: var(--gold-4);
+    border-bottom-color: var(--gold-6);
+
+    /* border-left-color: var(--am-mid);
+    border-right-color: var(--am-mid);
+    border-top-color: var(--am-hi);
+    border-bottom-color: var(--am-base); */
+}
+
+.button_press {
+    border-left-color: var(--gold-2);
+    border-right-color: var(--gold-2);
+    border-top-color: var(--gold-3);
+    border-bottom-color: var(--gold-1);
+}
+
+
+.button_l {
+    height: 48px;
+    font-size: 16px;
+}
+
+.button_m {
+    height: 40px;
+    font-size: 14px;
+}
+
+.button_s {
+    height: 32px;
+    font-size: 13px;
+}
+
+.button_xs {
+    height: 26px;
+    font-size: 12px;
+    border-radius: 6px;
+}

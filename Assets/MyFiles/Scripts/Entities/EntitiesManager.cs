@@ -5,9 +5,9 @@ namespace Entities
 {
     public class EntitiesManager
     {
-        public Dictionary<string, EntityContainer> Entities = new();
+        public Dictionary<string, Entity> Entities = new();
 
-        public EntityContainer GetEntity(string id)
+        public Entity GetEntity(string id)
         {
             if (Entities.ContainsKey(id))
             {
