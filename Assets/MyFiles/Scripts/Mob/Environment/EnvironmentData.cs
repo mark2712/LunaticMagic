@@ -1,5 +1,8 @@
+using System;
+
 namespace Environment
 {
+    [Serializable]
     public class EnvironmentData
     {
         public bool HasGround;

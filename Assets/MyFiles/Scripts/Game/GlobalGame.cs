@@ -32,25 +32,25 @@ public static class GlobalGame
 
     public static void InitGameSession(GameProfile gameProfile)
     {
-        ChangeSession(gameProfile, new NewGame.None(), null, true);
+        ChangeSession(gameProfile, new NewGame.Save(), null, true);
     }
 
-    public static void NewGameSession(GameProfile gameProfile, NewGame.INewGameDataBuilder newGame)
+    public static void NewGameSession(GameProfile gameProfile, NewGame.INewGameChooser newGame)
     {
         ChangeSession(gameProfile, newGame, null);
     }
 
     public static void LoadGameSession(GameProfile gameProfile, GameSave gameSave)
     {
-        ChangeSession(gameProfile, new NewGame.None(), gameSave);
+        ChangeSession(gameProfile, new NewGame.Save(), gameSave);
     }
 
-    private static void ChangeSession(GameProfile gameProfile, NewGame.INewGameDataBuilder newGame, GameSave gameSave = null, bool init = false)
+    private static void ChangeSession(GameProfile gameProfile, NewGame.INewGameChooser newGame, GameSave gameSave = null, bool init = false)
     {
         Session?.Dispose();
         Session = new(gameProfile, gameSave);
         SessionProfuleId.Value = gameProfile.ProfileId.Value;
-        if (init)
+        if (!init)
         {
             Session.Init(newGame);
             Debug.Log($"Сессия загружена {SessionProfuleId}");

@@ -63,7 +63,7 @@ namespace Mobs.Physics
 
         public void FixedUpdate() { PhysicsBody.FixedUpdate(); }
         public void Update() { PhysicsBody.Update(); }
-        public void LateUpdate() { PhysicsBody.LateUpdate(); }
+        // public void LateUpdate() { PhysicsBody.LateUpdate(); }
 
         public void Dispose()
         {

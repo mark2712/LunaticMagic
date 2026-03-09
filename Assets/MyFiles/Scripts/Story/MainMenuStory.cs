@@ -1,33 +1,33 @@
-using UniRx;
-using System;
+// using UniRx;
+// using System;
 
-namespace Story
-{
-    public class MainMenuStory : IStory
-    {
-        public void Init()
-        {
+// namespace Story
+// {
+//     public class MainMenuStory : IStory
+//     {
+//         public void Init()
+//         {
 
-        }
+//         }
 
-        // public void Load(MainMenuStoryData data)
-        // {
+//         // public void Load(MainMenuStoryData data)
+//         // {
             
-        // }
+//         // }
 
-        // public MainMenuStoryData Save()
-        // {
-        //     MainMenuStoryData mainMenuStoryData = new()
-        //     {
+//         // public MainMenuStoryData Save()
+//         // {
+//         //     MainMenuStoryData mainMenuStoryData = new()
+//         //     {
                 
-        //     };
-        //     return mainMenuStoryData;
-        // }
-    }
+//         //     };
+//         //     return mainMenuStoryData;
+//         // }
+//     }
 
-    [Serializable]
-    public class MainMenuStoryData
-    {
+//     [Serializable]
+//     public class MainMenuStoryData
+//     {
 
-    }
-}
+//     }
+// }

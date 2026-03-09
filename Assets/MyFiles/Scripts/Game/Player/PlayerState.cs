@@ -2,7 +2,7 @@ using UniRx;
 using System;
 using UnityEngine;
 
-class PlayerState
+public class PlayerState
 {
     public void Load(PlayerStateData data)
     {

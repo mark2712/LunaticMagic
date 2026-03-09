@@ -6,6 +6,7 @@
 
 using System;
 using System.Globalization;
+using UnityEngine;
 
 public static class SaveData
 {
@@ -17,6 +18,16 @@ public static class SaveData
     public static void Save<T>(T data, string folderPath, string fileName)
     {
         SaveDataJSON.Save(data, folderPath, fileName);
+    }
+
+    public static T LoadStr<T>(string data) where T : class
+    {
+        return JsonUtility.FromJson<T>(data);
+    }
+
+    public static string SaveStr<T>(T data) where T : class
+    {
+        return JsonUtility.ToJson(data, prettyPrint: true);
     }
 
 

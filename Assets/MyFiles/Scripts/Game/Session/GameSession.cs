@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Entities;
 using UniRx;
 using UnityEngine;
 
@@ -12,7 +13,7 @@ public interface IGameSession : IDisposable
     string SessionId { get; }
     GameProfile Profile { get; }
 
-    void Init(NewGame.INewGameDataBuilder newGame); // Enter, start
+    void Init(NewGame.INewGameChooser newGame); // Enter, start
     // за паузу отвечает пауза а не сессия
     // Dispose - это Exit, stop
 
@@ -35,6 +36,13 @@ public class GameSession : IGameSession
 
     public LocalGameTime LocalTime = new();
     public Story.StoryState StoryState = new();
+    public Story.QuestsManager QuestsManager = new();
+    public PlayerState Player = new();
+    public ICameras Cameras = new Cameras();
+    // public NpcAi NpcAi = new();
+
+    public EntitiesManager EntitiesManager = new();
+
 
     public GameSession(GameProfile gameProfile, GameSave gameSave = null)
     {
@@ -44,8 +52,9 @@ public class GameSession : IGameSession
         // 1. Создаём папку сессии
         SessionPath = Path.Combine(DataPathManager.Sessions, SessionId);
         Directory.CreateDirectory(SessionPath);
+        CleanupSessionsDirectory(SessionPath); // удалить все папки из Sessions кроме папки с текущей сессией
 
-        // 2. Если есть сейв — копируем его содержимое в сессию
+        // 2. Если есть сейв — копируем всё его содержимое в сессию
         if (gameSave != null)
         {
             SavePath = DataPathManager.GameProfileSave(Profile.ProfileId.Value, gameSave.SaveId.Value);
@@ -53,15 +62,15 @@ public class GameSession : IGameSession
         }
     }
 
-    public void Init(NewGame.INewGameDataBuilder newGame)
+    public void Init(NewGame.INewGameChooser newGame)
     {
         // 3. Загружаем данные сессии из рантайм-папки
-        GameSessionData RuntimeGameSessionData = SaveData.Load<GameSessionData>(SessionPath, "GameSessionData") ?? newGame.Build(new());
+        GameSessionData RuntimeGameSessionData = SaveData.Load<GameSessionData>(SessionPath, "GameSessionData") ?? new();
         Load(RuntimeGameSessionData);
 
-        CleanupSessionsDirectory(); // удалить все папки из Sessions кроме папки с текущей сессией
-
-        StoryState.RunInitExecuteScripts(); // выполнить начальные скрипты для данной сессии
+        newGame.Execute(EntitiesManager);
+        // EntitiesManager.InitAllActiveEntities();
+        // EntitiesManager.StartAll();
     }
 
     public void CreateSave(GameSaveTypes type, string comment)
@@ -90,32 +99,34 @@ public class GameSession : IGameSession
 
     public void FixedUpdate()
     {
-
+        EntitiesManager.FixedUpdate();
     }
 
     public void Update()
     {
         if (LocalTime.IsPaused.Value)
         {
-
+            EntitiesManager.PauseUpdate();
         }
         else
         {
             LocalTime.Tick(Time.deltaTime);
+            EntitiesManager.Update();
         }
     }
 
     public void LateUpdate()
     {
-
+        EntitiesManager.LateUpdate();
     }
 
     public void Dispose()
     {
+        EntitiesManager.Dispose();
         Profile.IsSession.Value = false;
     }
 
-    private void CleanupSessionsDirectory()
+    private void CleanupSessionsDirectory(string sessionPath)
     {
         string sessionsRoot = DataPathManager.Sessions;
 
@@ -125,7 +136,7 @@ public class GameSession : IGameSession
         foreach (var dir in Directory.GetDirectories(sessionsRoot))
         {
             // оставляем только текущую сессию
-            if (Path.GetFullPath(dir) == Path.GetFullPath(SessionPath))
+            if (Path.GetFullPath(dir) == Path.GetFullPath(sessionPath))
                 continue;
 
             try
@@ -164,6 +175,7 @@ public class GameSession : IGameSession
     {
         LocalTime.Load(data.LocalGameTimeData);
         StoryState.Load(data.StoryStateData);
+        EntitiesManager.Load(data.EntitiesData);
     }
 
     public GameSessionData Save()
@@ -171,7 +183,8 @@ public class GameSession : IGameSession
         GameSessionData data = new()
         {
             LocalGameTimeData = LocalTime.Save(),
-            StoryStateData = StoryState.Save()
+            StoryStateData = StoryState.Save(),
+            EntitiesData = EntitiesManager.Save(),
         };
         return data;
     }
@@ -183,4 +196,5 @@ public class GameSessionData
 {
     public LocalGameTimeData LocalGameTimeData = new();
     public Story.StoryStateData StoryStateData = new();
+    public EntitiesData EntitiesData = new();
 }

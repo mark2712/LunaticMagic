@@ -5,31 +5,21 @@ namespace Story
 {
     public class StoryState
     {
-        public List<IStoryScript> InitExecuteScripts = new();
-
-        public bool MainMenuOpen = false;
-        public bool IsTimerRunning = false;
-
-        public void RunInitExecuteScripts()
-        {
-            foreach (var script in InitExecuteScripts)
-            {
-                script.Execute();
-            }
-        }
+        public bool MainMenuEntitySpawn = false;
+        public bool GameEntitySpawn = false;
 
         public void Load(StoryStateData data)
         {
-            MainMenuOpen = data.MainMenuOpen;
-            IsTimerRunning = data.IsTimerRunning;
+            MainMenuEntitySpawn = data.MainMenuEntitySpawn;
+            GameEntitySpawn = data.GameEntitySpawn;
         }
 
         public StoryStateData Save()
         {
             return new StoryStateData()
             {
-                MainMenuOpen = MainMenuOpen,
-                IsTimerRunning = IsTimerRunning,
+                MainMenuEntitySpawn = MainMenuEntitySpawn,
+                GameEntitySpawn = GameEntitySpawn,
             };
         }
     }
@@ -37,7 +27,17 @@ namespace Story
     [Serializable]
     public class StoryStateData
     {
-        public bool MainMenuOpen = false;
-        public bool IsTimerRunning = false;
+        public bool MainMenuEntitySpawn = false;
+        public bool GameEntitySpawn = false;
     }
 }
+
+
+// public List<IStoryScript> InitExecuteScripts = new();
+// public void RunInitExecuteScripts()
+// {
+//     foreach (var script in InitExecuteScripts)
+//     {
+//         script.Execute();
+//     }
+// }

@@ -1,7 +1,7 @@
-namespace Story
-{
-    public interface IStoryScript
-    {
-        void Execute();
-    }
-}
+// namespace Story
+// {
+//     public interface IStoryScript
+//     {
+//         void Execute(); // выполняется ПОСЛЕ Load(RuntimeGameSessionData)
+//     }
+// }

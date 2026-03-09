@@ -14,6 +14,6 @@ namespace Mobs.Physics
 
         void FixedUpdate();
         void Update();
-        void LateUpdate();
+        // void LateUpdate();
     }
 }

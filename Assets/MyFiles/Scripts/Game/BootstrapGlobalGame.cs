@@ -20,7 +20,7 @@ public class BootstrapGlobalGame : MonoBehaviour
     private void Init()
     {
         GlobalGame.UIManager.Init();
-        GlobalGame.Session.Init(new NewGame.None());
+        GlobalGame.Session.Init(new NewGame.MainMenu());
         GlobalGame.UIGlobalState.Init();
     }
 

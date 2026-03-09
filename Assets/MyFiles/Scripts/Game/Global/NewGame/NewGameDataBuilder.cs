@@ -1,105 +1,68 @@
-using System;
+using Entities;
+using UnityEngine;
 
 namespace NewGame
 {
-    public interface INewGameDataBuilder
+    public interface INewGameChooser
     {
-        GameSessionData Build(GameSessionData gameSessionData);
+        void Execute(EntitiesManager EntitiesManager);
     }
 
-    public class None : INewGameDataBuilder
+    public class Save : INewGameChooser
     {
-        public GameSessionData Build(GameSessionData gameSessionData)
+        public void Execute(EntitiesManager EntitiesManager) { }
+    }
+
+    public class MainMenu : INewGameChooser
+    {
+        public void Execute(EntitiesManager EntitiesManager)
         {
-            return gameSessionData;
+            IEntity entity = EntitiesManager.GetEntity("MainMenuInitScript");
         }
     }
 
-    public class MainMenu : INewGameDataBuilder
+    public class NewGame : INewGameChooser
     {
-        public GameSessionData Build(GameSessionData gameSessionData)
+        public void Execute(EntitiesManager EntitiesManager)
         {
-            gameSessionData.StoryStateData.MainMenuOpen = true;
-            return gameSessionData;
-        }
-    }
-
-    public class NewGame : INewGameDataBuilder
-    {
-        public GameSessionData Build(GameSessionData gameSessionData)
-        {
-            return gameSessionData;
+            IEntity entity = EntitiesManager.GetEntity("NewGameInitScript");
         }
     }
 }
 
-// public enum NewGameTypes
-// {
-//     None,
-//     MainMenu,
-//     NewGame,
-//     Level1, // технический выбор уровня
-// }
 
-// public class NewGameDataBuilder
+
+// namespace NewGame
 // {
-//     public GameSessionData Build(GameSessionData gameSessionData, NewGameTypes newGameType)
+//     public interface INewGameDataBuilder
 //     {
-//         switch (newGameType)
+//         GameSessionData Build(); // выполняется ДО Load(RuntimeGameSessionData)
+//     }
+
+//     public class Save : INewGameDataBuilder
+//     {
+//         public GameSessionData Build()
 //         {
-//             case NewGameTypes.MainMenu:
-//                 gameSessionData = MainMenu(gameSessionData);
-//                 break;
-//             case NewGameTypes.NewGame:
-//                 break;
-//             case NewGameTypes.Level1:
-//                 break;
-//             default:
-//                 break;
+//             Debug.LogWarning("INewGameDataBuilder не должен выполнятся у загружаемого сохранения");
+//             return gameSessionData;
 //         }
-//         return gameSessionData;
 //     }
 
-//     public GameSessionData MainMenu(GameSessionData gameSessionData)
+//     public class MainMenu : INewGameDataBuilder
 //     {
-//         gameSessionData.MainMenuOpen = true;
-//         return gameSessionData;
+//         public GameSessionData Build()
+//         {
+//             gameSessionData.StoryStateData.MainMenuEntitySpawn = true;
+//             return gameSessionData;
+//         }
 //     }
 
-//     public GameSessionData Level1(GameSessionData gameSessionData)
+//     public class NewGame : INewGameDataBuilder
 //     {
-//         return gameSessionData;
-//     }
-// }
-
-
-
-
-// [Serializable]
-// public class NewGameData
-// {
-//     public bool MainMenuOpen = true;
-// }
-
-// public static class NewGameDataCreater
-// {
-//     public static NewGameData Level0()
-//     {
-//         return new NewGameData();
-//     }
-// }
-
-
-
-// public interface INewGameDataCreater
-// {
-//     public NewGameData Create();
-// }
-
-// public class NewGameDataLevel0 : INewGameDataCreater
-// {
-//     public NewGameData Create()
-//     {
-//         return new NewGameData();
+//         public GameSessionData Build()
+//         {
+//             gameSessionData.StoryStateData.GameEntitySpawn = true;
+//             return gameSessionData;
+//         }
 //     }
 // }
