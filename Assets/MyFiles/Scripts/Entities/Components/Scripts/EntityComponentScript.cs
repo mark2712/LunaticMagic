@@ -23,27 +23,19 @@ namespace Entities
 
         protected abstract void Execute();
 
-        public override string Save()
+        public override object Save()
         {
             EntityComponentScriptData data = new()
             {
                 IsExecuted = IsExecuted
             };
-            return SaveData.SaveStr(data);
+            return data;
         }
 
-        public override void Load(string data)
+        public override void Load(object data) 
         {
-            IsExecuted = SaveData.LoadStr<EntityComponentScriptData>(data).IsExecuted;
-        }
-    }
-
-
-    public class TestScriptComponent : EntityComponentScript
-    {
-        protected override void Execute()
-        {
-            Debug.Log("Script executed once");
+            EntityComponentScriptData EntityComponentScriptData = (EntityComponentScriptData)data;
+            IsExecuted = EntityComponentScriptData.IsExecuted;
         }
     }
 }

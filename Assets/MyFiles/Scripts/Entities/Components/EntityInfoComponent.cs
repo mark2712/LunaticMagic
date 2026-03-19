@@ -5,15 +5,15 @@ namespace Entities
     [Serializable]
     public class EntityInfoComponentData
     {
-        public string Name;
-        public string Description;
-        public string SpawnTime;
+        public string Name = "";
+        public string EntityType = "";
+        public string SpawnTime = "";
     }
 
     public class EntityInfoComponent : EntityComponentBase
     {
         public string Name;
-        public string Description;
+        public string EntityType;
         public DateTime SpawnTime;
 
         public override void Start()
@@ -22,27 +22,24 @@ namespace Entities
                 SpawnTime = DateTime.Now;
         }
 
-        public override string Save()
+        public override object Save()
         {
             EntityInfoComponentData data = new()
             {
                 Name = Name,
-                Description = Description,
+                EntityType = EntityType,
                 SpawnTime = SaveData.Date(SpawnTime)
             };
 
-            return SaveData.SaveStr(data);
+            return data;
         }
 
-        public override void Load(string json)
+        public override void Load(object data)
         {
-            if (string.IsNullOrEmpty(json)) return;
-
-            var data = SaveData.LoadStr<EntityInfoComponentData>(json);
-
-            Name = data.Name;
-            Description = data.Description;
-            SpawnTime = SaveData.Date(data.SpawnTime);
+            EntityInfoComponentData EntityInfoComponentData = (EntityInfoComponentData)data;
+            Name = EntityInfoComponentData.Name;
+            EntityType = EntityInfoComponentData.EntityType;
+            SpawnTime = SaveData.Date(EntityInfoComponentData.SpawnTime);
         }
     }
 }

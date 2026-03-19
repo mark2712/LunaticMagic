@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Entities
 {
@@ -8,8 +9,17 @@ namespace Entities
         IReadOnlyDictionary<string, IEntity> Entities { get; }
         IReadOnlyDictionary<string, IEntity> ActiveEntities { get; }
         IReadOnlyDictionary<string, string> SpawnedEntities { get; }
+
+        EntitiesData Save();
+        void Load(EntitiesData data);
+
+        void AddEntity(IEntity entity);
         IEntity GetEntity(IEntity entity);
-        IEntity GetEntity(string id);
+        IEntity GetEntity(string entityId);
+        void RemoveEntity(string entityId);
+
+        IEntity Activate(string entityId); // загружает данные из json, создает компоненты
+        IEntity Deactivate(string entityId); // загружает данные в json, уничтожает компоненты
     }
 
     public class EntitiesManager : IEntities, IDisposable
@@ -26,39 +36,72 @@ namespace Entities
         public IReadOnlyDictionary<string, IEntity> ActiveEntities => _activeEntities;
         public IReadOnlyDictionary<string, string> SpawnedEntities => _spawnedEntities;
 
+        private bool IsActive(string entityId) => _activeEntities.ContainsKey(entityId);
+        private string EntityPath(string entityId) => Path.Combine(DataPathManager.Entities(GlobalGame.Session.SessionId), entityId + ".json");
+
+
         public void AddEntity(IEntity entity)
         {
-            _entities.Add(entity.EntityId, entity);
+            // добавить просто id
+            _entities.Add(entity.EntityId, (Entity)entity);
             if (entity.SpawnerId != null)
             {
                 _spawnedEntities.Add(entity.SpawnerId, entity.EntityId);
             }
+            // проверить стейт и в зависимости от него активировать сущность
         }
 
         public IEntity GetEntity(IEntity entity) => GetEntity(entity.EntityId);
-        public IEntity GetEntity(string id)
+        public IEntity GetEntity(string entityId)
         {
-            IEntity entity;
-            if (_entities.ContainsKey(id))
+            if (_entities.ContainsKey(entityId))
             {
-                entity = _entities[id];
+                Entity entity = (Entity)_entities[entityId];
                 if (!entity.IsActive)
                 {
-                    entity.Activate();
+                    Activate(entityId);
                 }
                 return entity;
             }
             return null;
         }
 
-        public void RemoveEntity(string id)
+        public IEntity Activate(string entityId)
         {
-            IEntity entity = _entities[id];
-            entity.Deactivate();
-            _entities.Remove(id);
-            _activeEntities.Remove(id);
-            _spawnedEntities.Remove(id);
+            IEntity entity = _entities[entityId];
+            if (IsActive(entityId)) return entity;
+            entity.EntityRuntime = new EntityRuntime(entity);
+            _activeEntities[entityId] = _entities[entityId];
+            return entity;
         }
+
+        public IEntity Deactivate(string entityId)
+        {
+            IEntity entity = _entities[entityId];
+            if (!IsActive(entityId)) return entity;
+            entity.EntityRuntime = null;
+            _activeEntities.Remove(entityId);
+            return entity;
+        }
+
+        public void RemoveEntity(string entityId)
+        {
+            IEntity entity = _entities[entityId];
+            Deactivate(entityId);
+            _entities.Remove(entityId);
+            _activeEntities.Remove(entityId);
+            if (entity.SpawnerId != null)
+            {
+                _spawnedEntities.Remove(entity.SpawnerId);
+            }
+            // удалить свой файл
+            string filePath = EntityPath(entityId);
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+
 
         public void Load(EntitiesData data)
         {
@@ -71,6 +114,12 @@ namespace Entities
 
         public EntitiesData Save()
         {
+            // сохранить (обновить файлы) данные всех активных сущностей (у неактивных уже есть актуальная информация в файлах)
+            foreach (var entity in _activeEntities)
+            {
+                entity.Value.EntityRuntime?.SaveComponents(entity.Value);
+            }
+            // просто сохранить (верунть) список id всех сущностейи их простые данные
             EntitiesData data = new();
             foreach (var entity in _entities)
             {
@@ -86,14 +135,13 @@ namespace Entities
 
         public void Dispose()
         {
-            foreach (var entity in _activeEntities)
+            foreach (var entityKV in _activeEntities)
             {
-                entity.Value.EntityRuntime.Dispose();
+                IEntity entity = entityKV.Value;
+                string entityId = entity.EntityId;
+                if (IsActive(entityId)) Deactivate(entityId);
             }
         }
-
-        public void AddActiveEntity(string entityId) => _activeEntities[entityId] = _entities[entityId];
-        public void RemoveActiveEntity(string entityId) => _activeEntities.Remove(entityId);
 
         public void FixedUpdate() { foreach (var entity in _activeEntities.Values) entity.EntityRuntime.FixedUpdate(); }
         public void PauseUpdate() { foreach (var entity in _activeEntities.Values) entity.EntityRuntime.PauseUpdate(); }
@@ -107,38 +155,14 @@ namespace Entities
     {
         public List<EntityData> Entities = new();
     }
-
-    // public interface IEntityBuilder
-    // {
-    //     IEntity Entity { get; }
-    //     IEntityRuntime Runtime { get; }
-    //     IEntity Activate();
-    //     IEntity Deactivate();
-    // }
-
-    // public class EntityBuilder : IEntityBuilder
-    // {
-    //     public IEntity Entity { get; private set; }
-    //     private IEntities Entities => GlobalGame.Session.EntitiesManager;
-    //     public IEntityRuntime Runtime => Entity.EntityRuntime;
-
-    //     public EntityBuilder(string id)
-    //     {
-    //         Entity = Entities.Entities[id];
-    //     }
-
-    //     public IEntity Activate()
-    //     {
-    //         Entities.Activate(Entity);
-    //         return Entity;
-    //     }
-
-    //     public IEntity Deactivate()
-    //     {
-    //         Entities.Deactivate(Entity);
-    //         return Entity;
-    //     }
-    // }
 }
 
 
+// public interface EntityFluentBuilder
+// {
+//     public string EntityId { get; }
+//     EntitiesManager EntitiesManager { get; }
+//     EntityFluentBuilder Get();
+//     EntityFluentBuilder Activate();
+//     EntityFluentBuilder Deactivate();
+// }

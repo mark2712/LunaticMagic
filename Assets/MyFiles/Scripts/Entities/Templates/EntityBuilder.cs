@@ -43,9 +43,10 @@ namespace Entities
             };
 
             Entity entity = new(data);
-
-            // сразу активируем
-            entity.Activate();
+            if (entity.EntityRuntime == null)
+            {
+                entity.Activate();
+            }
 
             foreach (var component in _components)
             {

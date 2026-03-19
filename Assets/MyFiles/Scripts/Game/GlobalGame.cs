@@ -27,7 +27,7 @@ public static class GlobalGame
         // InitGameSession(profiles.Profiles[SystemProfileIds.SystemMainMenu]);
         InitGameSession(profiles.Profiles["test1_ff28c2e80cd9"]);
 
-        Save();
+        Save(); // сохранение глобальных игровых настроек (язык, настройки графики...) - это нужно вызывать после изменения настроек а не тут (сейчас временно тут)
     }
 
     public static void InitGameSession(GameProfile gameProfile)
@@ -35,7 +35,7 @@ public static class GlobalGame
         ChangeSession(gameProfile, new NewGame.Save(), null, true);
     }
 
-    public static void NewGameSession(GameProfile gameProfile, NewGame.INewGameChooser newGame)
+    public static void NewGameSession(GameProfile gameProfile, NewGame.INewGameSessionChooser newGame)
     {
         ChangeSession(gameProfile, newGame, null);
     }
@@ -45,7 +45,7 @@ public static class GlobalGame
         ChangeSession(gameProfile, new NewGame.Save(), gameSave);
     }
 
-    private static void ChangeSession(GameProfile gameProfile, NewGame.INewGameChooser newGame, GameSave gameSave = null, bool init = false)
+    private static void ChangeSession(GameProfile gameProfile, NewGame.INewGameSessionChooser newGame, GameSave gameSave = null, bool init = false)
     {
         Session?.Dispose();
         Session = new(gameProfile, gameSave);

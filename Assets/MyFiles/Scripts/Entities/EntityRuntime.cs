@@ -5,6 +5,35 @@ using UnityEngine;
 
 namespace Entities
 {
+    public enum RuntimeState
+    {
+        None,
+        Initialized,
+        Started,
+        Stopped,
+        Disposed
+    }
+
+    public interface IEntityRuntime1 : IDisposable
+    {
+        RuntimeState State { get; }
+
+        void Init(); // загрузка компонентов
+        void Start(); // запуск логики
+        void Stop(); // остановка логики
+        // void Dispose();  // сохранение + уничтожение
+
+        // --- события lifecycle ---
+        event Action OnInitialized;
+        event Action OnStarted;
+        event Action OnStopped;
+        event Action OnDisposed;
+
+        // --- события компонентов ---
+        event Action<IEntityComponent> OnComponentAdded;
+        event Action<IEntityComponent> OnComponentRemoved;
+    }
+
     // Управляет компонентами
     public interface IEntityRuntime : IDisposable
     {
@@ -13,13 +42,13 @@ namespace Entities
         void AddComponent(IEntityComponent component);
         void RemoveComponent<T>() where T : IEntityComponent;
 
-        // Init это new EntityRuntime
+        // Init это new EntityRuntime, LoadComponents и AddComponent
         void Start(); // старт всех компонентов (создание GO, включение Update, AI...)
         void Stop(); // стоп всех компонентов (уничтожение GO, отключение Update, AI...)
         // void Dispose(); // стоп всех компонентов и уничтожение компонентов (и данных в них)
 
         void LoadComponents(IEntity entity);
-        public void SaveComponents(IEntity entity);
+        void SaveComponents(IEntity entity);
 
         // Unity методы компонентов
         void FixedUpdate();
@@ -32,6 +61,7 @@ namespace Entities
     {
         private readonly Dictionary<Type, IEntityComponent> _components = new();
         public IEnumerable<IEntityComponent> GetAllComponents() => _components.Values;
+        public string EntityPath => DataPathManager.Entities(GlobalGame.Session.SessionId);
 
         public bool IsStart { get; private set; }
         public bool IsDispose { get; private set; }
@@ -46,6 +76,10 @@ namespace Entities
         private List<IUpdateComponent> UpdateComponents;
         private List<ILateUpdateComponent> LateUpdateComponents;
 
+        public EntityRuntime(IEntity entity)
+        {
+            
+        }
 
         public T GetComponent<T>() where T : class, IEntityComponent
         {
@@ -116,7 +150,7 @@ namespace Entities
         public void LoadComponents(IEntity entity)
         {
             // 1. Пытаемся загрузить данные
-            var data = SaveData.Load<EntityComponentsData>(DataPathManager.Entities, entity.EntityId);
+            var data = SaveData.Load<EntityComponentsData>(EntityPath, entity.EntityId);
 
             if (data != null)
             {
@@ -129,20 +163,13 @@ namespace Entities
                     if (type != null && typeof(IEntityComponent).IsAssignableFrom(type))
                     {
                         var component = (IEntityComponent)Activator.CreateInstance(type);
-                        component.Load(compData.JsonData); // Компонент сам парсит свой JSON
+                        component.Load(compData.data); // Компонент сам парсит свой JSON
                         AddComponent(component);
                     }
                     else
                     {
                         Debug.LogWarning($"[Entity] Не удалось загрузить компонент: {compData.TypeName}");
                     }
-                }
-
-                // 3. УДАЛЯЕМ ФАЙЛ. Данные теперь в рантайме. 
-                string filePath = Path.Combine(DataPathManager.Entities, entity.EntityId + ".json"); // Уточни расширение файла
-                if (File.Exists(filePath))
-                {
-                    File.Delete(filePath);
                 }
             }
         }
@@ -160,12 +187,12 @@ namespace Entities
                 {
                     // AssemblyQualifiedName нужен, если компоненты лежат в разных сборках (Assembly)
                     TypeName = component.GetType().AssemblyQualifiedName,
-                    JsonData = component.Save() // Компонент сам сериализует свои данные
+                    data = component.Save() // Компонент сам сериализует свои данные
                 });
             }
 
             // 2. Сохраняем в новый файл
-            SaveData.Save(data, DataPathManager.Entities, entity.EntityId);
+            SaveData.Save(data, EntityPath, entity.EntityId);
         }
 
         public void FixedUpdate() { foreach (var component in FixedUpdateComponents) component.FixedUpdate(); }
@@ -179,6 +206,6 @@ namespace Entities
     public class ComponentSaveData
     {
         public string TypeName; // Полное имя типа компонента для рефлексии
-        public string JsonData; // Внутренние данные компонента
+        public object data; // Внутренние данные компонента
     }
 }

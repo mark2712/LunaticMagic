@@ -22,7 +22,10 @@ public static class DataPathManager
     }
 
     public static string Sessions => EnsureDirectory(Path.Combine(Base, "Sessions"));
-    public static string Entities => EnsureDirectory(Path.Combine(Sessions, "Entities"));
+    public static string Entities(string SessionId)
+    {
+        return EnsureDirectory(Path.Combine(Sessions, SessionId, "Entities"));
+    }
 
     /// <summary>
     /// Гарантирует, что директория существует. Если нет — создаёт её.

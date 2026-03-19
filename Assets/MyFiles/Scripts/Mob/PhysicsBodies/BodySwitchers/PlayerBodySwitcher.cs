@@ -1,6 +1,5 @@
 using System;
 using Mobs.Physics;
-using Unity.Burst.Intrinsics;
 using UnityEngine;
 
 namespace Environment

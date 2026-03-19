@@ -13,7 +13,7 @@ public interface IGameSession : IDisposable
     string SessionId { get; }
     GameProfile Profile { get; }
 
-    void Init(NewGame.INewGameChooser newGame); // Enter, start
+    void Init(NewGame.INewGameSessionChooser newGame); // Enter, start
     // за паузу отвечает пауза а не сессия
     // Dispose - это Exit, stop
 
@@ -42,6 +42,7 @@ public class GameSession : IGameSession
     // public NpcAi NpcAi = new();
 
     public EntitiesManager EntitiesManager = new();
+    public UniqueEntitiesList UniqueEntitiesList = new();
 
 
     public GameSession(GameProfile gameProfile, GameSave gameSave = null)
@@ -62,11 +63,14 @@ public class GameSession : IGameSession
         }
     }
 
-    public void Init(NewGame.INewGameChooser newGame)
+    public void Init(NewGame.INewGameSessionChooser newGame)
     {
         // 3. Загружаем данные сессии из рантайм-папки
         GameSessionData RuntimeGameSessionData = SaveData.Load<GameSessionData>(SessionPath, "GameSessionData") ?? new();
         Load(RuntimeGameSessionData);
+
+        // EntitiesManager уже готов после Load, но нужно проверить все ли уникальные сущности загружены (например при новой игре)
+        UniqueEntitiesList.RegisterMissingEntities(EntitiesManager);
 
         newGame.Execute(EntitiesManager);
         // EntitiesManager.InitAllActiveEntities();
@@ -90,8 +94,7 @@ public class GameSession : IGameSession
         SaveData.Save(gameSessionData, SessionPath, "GameSessionData");
 
         // 4. Дать другим системам сохраниться
-        // Entities.SaveAll(SessionPath);
-        // World.Save(SessionPath);
+        // EntitiesManager.SaveAllEntities();
 
         // 5. Скопировать рантайм → сейв
         DataPathManager.CopyDirectory(SessionPath, SavePath);
