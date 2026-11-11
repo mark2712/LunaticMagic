@@ -1,0 +1,38 @@
+using Entities;
+using UnityEngine;
+
+namespace NewGame
+{
+    public interface INewGameSessionChooser
+    {
+        void Execute(EntitiesManager EntitiesManager);
+    }
+
+    public class Save : INewGameSessionChooser
+    {
+        public void Execute(EntitiesManager EntitiesManager) { }
+    }
+
+    public class MainMenu : INewGameSessionChooser
+    {
+        public void Execute(EntitiesManager EntitiesManager)
+        {
+            IEntity entity = EntitiesManager.GetEntity("MainMenuInitScript");
+            Debug.Log(entity);
+            var MainMenuInitScriptComponent = entity.EntityRuntime.GetComponent<MainMenuInitScriptComponent>();
+            Debug.Log(MainMenuInitScriptComponent);
+            MainMenuInitScriptComponent?.Execute();
+            // MainMenuInitScriptComponent mainMenuInitScriptComponent = new();
+            // mainMenuInitScriptComponent.Execute();
+        }
+    }
+
+    public class NewGame : INewGameSessionChooser
+    {
+        public void Execute(EntitiesManager EntitiesManager)
+        {
+            IEntity entity = EntitiesManager.GetEntity("NewGameInitScript");
+            // IEntity entity = EntitiesManager.GetEntity("NewGameInitScript");
+        }
+    }
+}

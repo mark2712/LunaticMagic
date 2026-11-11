@@ -1,9 +1,11 @@
-# Исключаем всё
+# Исключаем всё по умолчанию
 *
 
+# Временные файлы IDE и системы
 *.csproj
 *.unityproj
 *.sln
+*.slnx
 *.suo
 *.tmp
 *.user
@@ -16,14 +18,15 @@
 *.opendb
 *.VC.db
 *.vrm
-*.meta
 
 !.gitignore
 
+# Разрешаем папки и метафайлы
 !Assets/
 !Assets/MyFiles/
-!Assets/MyFiles/Scripts/
-!Assets/MyFiles/Scripts/**
+!Assets/MyFiles/**
+!Assets/MyFiles.meta
 
-!Assets/MyFiles/UITK
-!Assets/MyFiles/UITK/**
+!Assets/Scripts/
+!Assets/Scripts/**
+!Assets/Scripts.meta
