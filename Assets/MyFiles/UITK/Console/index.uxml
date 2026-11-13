@@ -1,0 +1,5 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <engine:VisualElement name="ConsoleRoot" style="background-color: rgba(20, 20, 20, 0.92); padding: 16px; border-bottom-width: 2px; border-bottom-color: #555; width: 100%;">
+        <engine:Label text="Консоль" style="font-size: 26px; -unity-font-style: bold; color: #FFFFFF;" />
+    </engine:VisualElement>
+</engine:UXML>

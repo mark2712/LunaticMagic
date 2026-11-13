@@ -5,9 +5,9 @@ using System.Collections.Generic;
 
 namespace UITK
 {
-    public sealed class CreateProfileFormComponent : UIComponent<Type>
+    public sealed class CreateProfileFormComponent : UIComponent<IGameProfiles>
     {
-        public CreateProfileFormComponent(Type props, string key = "0") : base(props, key) { }
+        public CreateProfileFormComponent(IGameProfiles props, string key = "0") : base(props, key) { }
 
         private TextField _nameField;
         private RadioButtonGroup _difficultyGroup;
@@ -79,7 +79,7 @@ namespace UITK
             var difficulty = (DifficultyGame)Enum.GetValues(typeof(DifficultyGame)).GetValue(_difficultyGroup.value);
             var profileType = (ProfileTypes)Enum.GetValues(typeof(ProfileTypes)).GetValue(_profileTypeGroup.value);
 
-            UIGlobalState.Profiles.Create(name, profileType, difficulty);
+            Props?.Create(name, profileType, difficulty);
         }
     }
 }

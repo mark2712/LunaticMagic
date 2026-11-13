@@ -1,48 +1,39 @@
-// Управление жизненным циклом игровой сессии, ее стейт-машиной и изолированной песочницей сохранения.
-// Роль в проекте: центральный координатор сессии, объединяющий стейты (Loading, Gameplay, Pause), время, сущности и паузу.
+// Управление жизненным циклом игровой сессии, ее подсистемами и изолированной песочницей сохранения.
+// Роль в проекте: центральный координатор сессии, объединяющий время (LocalTime), паузу (SessionPauseController),
+// звук (SessionSoundController) и мир сущностей (EntitiesManager).
 
 using System;
 using System.IO;
 using Entities;
-using Game.Session;
 using Game.Session.Pause;
+using Game.Session.Sound;
 using LocalTime;
 using UniRx;
 using UnityEngine;
 
-// Интерфейс активной игровой сессии. Определяет контракт доступа к состоянию сессии, времени, паузе и сохранению.
+// Интерфейс активной игровой сессии. Определяет контракт доступа к состоянию сессии, времени, паузе, звуку и сохранению.
 public interface IGameSession : IDisposable
 {
     string SessionId { get; }
     GameProfile Profile { get; }
-    IReadOnlyReactiveProperty<SessionState> State { get; }
-    IPauseController PauseController { get; }
-    LocalGameTime LocalTime { get; }
+    ILocalGameTime LocalTime { get; }
+    ISessionPauseController SessionPauseController { get; } // Вся логика режимов паузы
+    ISessionSoundController SessionSoundController { get; } // Реагирует на паузу и управляет 3 слотами музыки
 
-    // Переключает базовое состояние жизненного цикла сессии.
-    void SetState(SessionState state);
-    // Переводит сессию в состояние паузы (только из Gameplay).
-    void Pause();
-    // Возвращает сессию в режим геймплея (только из Pause).
-    void Resume();
-    // Инициализирует мир сессии и запускает стартовый сценарий.
     void Init(NewGame.INewGameSessionChooser newGame);
+    IReadOnlyReactiveProperty<bool> IsPaused { get; } // Флаг: пауза или геймплей
 
     // Создает точку сохранения и упаковывает файлы песочницы сессии в архив профиля.
     void CreateSave(GameSaveTypes type, string comment);
 
-    // Физический тик симуляции сессии (выполняется строго в FixedUpdate).
     void FixedUpdate();
-    // Кадровое обновление сессии (выполняется в Update).
     void Update();
-    // Финальное кадровое обновление (выполняется в LateUpdate).
     void LateUpdate();
 
     // Задает сложность игры для активного профиля.
     void SetDifficulty(DifficultyGame difficulty);
 }
 
-// Реализация игровой сессии. Работает в изолированной папке Sessions/{SessionId}/ и управляет миром.
 public class GameSession : IGameSession
 {
     public string SessionId { get; private set; } = GeneratorId.GenerateId("Session");
@@ -50,34 +41,26 @@ public class GameSession : IGameSession
     public string SavePath { get; private set; }
     public GameProfile Profile { get; private set; }
 
-    // Реактивное свойство текущего состояния сессии (Loading, Gameplay, Pause).
-    private readonly ReactiveProperty<SessionState> _state = new(SessionState.Loading);
-    public IReadOnlyReactiveProperty<SessionState> State => _state;
-
-    // Контроллер подстейтов паузы (меню паузы, консоль разработчика).
-    public PauseController PauseController { get; } = new();
-    IPauseController IGameSession.PauseController => PauseController;
-
-    // Фасад управления временем сессии и календарем.
-    public LocalGameTime LocalTime { get; } = new();
-    public ICameras Cameras = new Cameras();
+    public ILocalGameTime LocalTime { get; } = new LocalGameTime();
+    public ISessionPauseController SessionPauseController { get; } = new SessionPauseController();
+    public ISessionSoundController SessionSoundController { get; } = new SessionSoundController();
+    public IReadOnlyReactiveProperty<bool> IsPaused => SessionPauseController.IsPaused;
 
     public EntitiesManager EntitiesManager = new();
     public EntitiesLoader EntitiesLoader = new();
 
-    // Конструктор сессии. Инициализирует рабочую директорию и принудительно замораживает время в состоянии Loading.
+
     public GameSession(GameProfile gameProfile, GameSave gameSave = null)
     {
         Profile = gameProfile;
         Profile.IsSession.Value = true;
-        ApplyState(SessionState.Loading, force: true);
 
         // 1. Создаём папку сессии
         SessionPath = Path.Combine(DataPathManager.Sessions, SessionId);
         Directory.CreateDirectory(SessionPath);
         CleanupSessionsDirectory(SessionPath); // удалить все папки из Sessions кроме папки с текущей сессией
 
-        // 2. Если передан сейв — копируем файлы сохранения в песочницу сессии
+        // 2. Если есть сейв — копируем всё его содержимое в сессию
         if (gameSave != null)
         {
             SavePath = DataPathManager.GameProfileSave(Profile.ProfileId.Value, gameSave.SaveId.Value);
@@ -85,79 +68,20 @@ public class GameSession : IGameSession
         }
     }
 
-    // Задает новое целевое состояние сессии.
-    public void SetState(SessionState newState)
-    {
-        ApplyState(newState, force: false);
-    }
-
-    // Применяет смену состояния с управлением паузой времени и сбросом подстейтов паузы.
-    private void ApplyState(SessionState newState, bool force)
-    {
-        // if (!force && _state.Value == newState) return;
-
-        // SessionState oldState = _state.Value;
-        // _state.Value = newState;
-
-        // switch (newState)
-        // {
-        //     case SessionState.Loading:
-        //         AudioListener.pause = false;
-        //         LocalTime.SetTimeScale(0f);
-        //         break;
-        //     case SessionState.Gameplay:
-        //         AudioListener.pause = false;
-        //         LocalTime.SetTimeScale(1f);
-        //         break;
-        //     case SessionState.Pause:
-        //         AudioListener.pause = true;
-        //         LocalTime.SetTimeScale(0f);
-        //         break;
-        // }
-
-        // // При выходе из паузы в другое состояние сбрасываем активные подстейты паузы
-        // if (oldState == SessionState.Pause && newState != SessionState.Pause)
-        // {
-        //     PauseController.Reset();
-        // }
-    }
-
-    // Ставит игру на паузу (разрешено только из состояния геймплея).
-    public void Pause()
-    {
-        if (_state.Value == SessionState.Gameplay)
-        {
-            SetState(SessionState.Pause);
-        }
-    }
-
-    // Снимает игру с паузы и возвращает в геймплей (разрешено только из состояния паузы).
-    public void Resume()
-    {
-        if (_state.Value == SessionState.Pause)
-        {
-            SetState(SessionState.Gameplay);
-        }
-    }
-
-    // Инициализирует сущности сессии и передает управление стартовому сценарию.
     public void Init(NewGame.INewGameSessionChooser newGame)
     {
-        SetState(SessionState.Loading);
-
-        // Загружаем данные сессии из рабочей папки
+        // 3. Загружаем данные сессии из рантайм-папки
         GameSessionData RuntimeGameSessionData = SaveData.Load<GameSessionData>(SessionPath, "GameSessionData") ?? new();
         Load(RuntimeGameSessionData);
 
-        // Проверяем наличие всех уникальных сущностей
+        // EntitiesManager уже готов после Load, но нужно проверить все ли уникальные сущности загружены (например при новой игре)
         EntitiesLoader.RegisterMissingEntities(EntitiesManager);
 
-        newGame?.Execute(EntitiesManager);
-
-        SetState(SessionState.Gameplay);
+        newGame.Execute(EntitiesManager);
+        // EntitiesManager.InitAllActiveEntities();
+        // EntitiesManager.StartAll();
     }
 
-    // Создает точку сохранения и копирует файлы рабочей сессии в постоянное хранилище.
     public void CreateSave(GameSaveTypes type, string comment)
     {
         // 1. Остановить сессию / паузу | (если нужно — снаружи)
@@ -181,53 +105,46 @@ public class GameSession : IGameSession
         DataPathManager.CopyDirectory(SessionPath, SavePath);
     }
 
-    // Физический тик: продвижение времени мира и физики сущностей только в режиме геймплея.
     public void FixedUpdate()
     {
-        if (_state.Value == SessionState.Gameplay)
+        if (!IsPaused.Value)
         {
             LocalTime.FixedUpdate(Time.fixedDeltaTime);
             EntitiesManager.FixedUpdate();
         }
     }
 
-    // Кадровый апдейт: в паузе обновляет оверлеи паузы, в геймплее — симуляцию сущностей.
     public void Update()
     {
-        if (_state.Value == SessionState.Pause)
+        if (IsPaused.Value)
         {
             LocalTime.Update(Time.unscaledDeltaTime);
-            PauseController.Update();
+            SessionPauseController.Update();
             EntitiesManager.PauseUpdate();
         }
-        else if (_state.Value == SessionState.Gameplay)
+        else
         {
             EntitiesManager.Update();
         }
     }
 
-    // Позднее кадровое обновление для камер и слежения в геймплее.
     public void LateUpdate()
     {
-        if (_state.Value == SessionState.Gameplay)
+        if (!IsPaused.Value)
         {
             EntitiesManager.LateUpdate();
         }
     }
 
-    // Освобождает ресурсы сессии, сбрасывает контроллер времени движка и реактивные подписки.
     public void Dispose()
     {
-        PauseController.Dispose();
-        EntitiesManager.Dispose();
+        SessionPauseController.Dispose();
+        SessionSoundController.Dispose();
         LocalTime.Dispose();
-        // AudioListener.pause = false;
-        // LocalTime.SetTimeScale(1f);
+        EntitiesManager.Dispose();
         Profile.IsSession.Value = false;
-        _state.Dispose();
     }
 
-    // Очищает директорию сессий, удаляя временные папки завершенных сессий.
     private void CleanupSessionsDirectory(string sessionPath)
     {
         string sessionsRoot = DataPathManager.Sessions;
@@ -252,7 +169,6 @@ public class GameSession : IGameSession
         }
     }
 
-    // Обновляет уровень сложности в профиле игрока.
     public void SetDifficulty(DifficultyGame difficulty)
     {
         if (Profile.Difficulty.Value == difficulty) return;
@@ -263,7 +179,6 @@ public class GameSession : IGameSession
         profiles.Update(Profile);
     }
 
-    // Обновляет имя персонажа в профиле игрока.
     public void SetName(string name)
     {
         if (Profile.Name.Value == name) return;
@@ -274,24 +189,26 @@ public class GameSession : IGameSession
         profiles.Update(Profile);
     }
 
-    // Десериализует состояние времени, сюжета и сущностей.
+
     public void Load(GameSessionData data)
     {
         LocalTime.Load(data.LocalGameTimeData);
         EntitiesManager.Load(data.EntitiesData);
+        SessionSoundController.Load(data.SessionSoundData);
     }
 
-    // Сериализует состояние времени, сюжета и сущностей в структуру сохранения.
     public GameSessionData Save()
     {
         GameSessionData data = new()
         {
             LocalGameTimeData = LocalTime.Save(),
             EntitiesData = EntitiesManager.Save(),
+            SessionSoundData = SessionSoundController.Save(),
         };
         return data;
     }
 }
+
 
 // Сериализуемый контейнер полного состояния сессии для сохранения на диск.
 [Serializable]
@@ -299,4 +216,5 @@ public class GameSessionData
 {
     public LocalGameTimeData LocalGameTimeData = new();
     public EntitiesData EntitiesData = new();
+    public SessionSoundData SessionSoundData = new();
 }

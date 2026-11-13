@@ -1,47 +1,28 @@
 using System;
-using UniRx;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UITK
 {
     public class UIComponentRoot : UIComponent<Type>
     {
-        // public VisualTreeAsset MainMenu;
-        // public VisualTreeAsset Console;
-        // public VisualTreeAsset Loading;
-        public VisualTreeAsset DebugMenu;
-
-        // private ReactiveProperty<bool> MainMenuState;
-        // private ReactiveProperty<bool> ConsoleState;
-        // private ReactiveProperty<bool> LoadingState;
-        private IReadOnlyReactiveProperty<bool> DebugMenuState;
-
         public UIComponentRoot(Type props, string key = "0") : base(props, key) { }
 
         public override void Init()
         {
-            // Use(GlobalGame.Localization.Language);
-
-            // MainMenu = LoadUITK("MainMenu");
-            // Console = LoadUITK("Console");
-            // Loading = LoadUITK("Loading");
-            DebugMenu = LoadUITK("Debug/Menu/index.uxml");
-
-            // MainMenuState = Use(GlobalGame.UIGlobalState.MainMenu);
-            // ConsoleState = Use(GlobalGame.UIGlobalState.Console);
-            // LoadingState = Use(GlobalGame.UIGlobalState.Loading);
-            DebugMenuState = Use(GlobalGame.UIGlobalState.DebugMenu);
         }
 
         public override void Render()
         {
             RootVisualElementStyles(View);
 
-            // if (MainMenuState.Value) { Node<ComponentMainMenu, Type>(null, MainMenu, View, "0"); }
-            // if (LoadingState.Value) { Node<ComponentLoading, Type>(null, Loading, View, "0"); }
-            // if (ConsoleState.Value) { Node<ComponentConsole, Type>(null, Console, View, "0"); }
-            if (DebugMenuState.Value) { Node<DebugMenuComponent, Type>(null, DebugMenu, View, "0"); }
+            // 1. Игровой UI (сущности)
+            Node<GameplayLayerComponent, Type>(null, null, View, "layer_gameplay");
+
+            // 2. Сессионный UI (пауза, загрузка)
+            Node<SessionLayerComponent, Type>(null, null, View, "layer_session");
+
+            // 3. Системный UI (консоль, дебаг-меню)
+            Node<SystemLayerComponent, Type>(null, null, View, "layer_system");
         }
 
         private void RootVisualElementStyles(VisualElement visualElement)

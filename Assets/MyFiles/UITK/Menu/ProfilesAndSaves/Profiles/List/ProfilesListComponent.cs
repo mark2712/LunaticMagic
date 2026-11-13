@@ -4,9 +4,9 @@ using UnityEngine.UIElements;
 
 namespace UITK
 {
-    public sealed class ProfilesListComponent : UIComponent<Type>
+    public sealed class ProfilesListComponent : UIComponent<IGameProfiles>
     {
-        public ProfilesListComponent(Type props, string key = "0") : base(props, key) { }
+        public ProfilesListComponent(IGameProfiles props, string key = "0") : base(props, key) { }
         private VisualTreeAsset _profileItemUxml;
 
         public override void Init()
@@ -16,13 +16,20 @@ namespace UITK
 
         public override void Render()
         {
-            var profiles = Use(UIGlobalState.Profiles.Profiles);
+            if (Props == null) return;
+
+            var profiles = Use(Props.Profiles);
             var container = View.Q("ProfilesList");
 
             foreach (var kv in profiles)
             {
                 var profile = kv.Value;
-                Node<ProfileItemComponent, GameProfile>(profile, _profileItemUxml, container, profile.ProfileId.Value);
+                Node<ProfileItemComponent, ProfileItemProps>(
+                    new ProfileItemProps { Profile = profile, Profiles = Props },
+                    _profileItemUxml,
+                    container,
+                    profile.ProfileId.Value
+                );
             }
         }
     }

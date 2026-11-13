@@ -25,7 +25,7 @@ public class GameInitializer : MonoBehaviour
         // _inputActions.Enable();
 
         playerController.Awake();
-        Debug.Log(GlobalGame.UIManager);
+        // Debug.Log(GlobalGame.UIManager);
     }
 
     public void Start()

@@ -4,9 +4,15 @@ using UnityEngine.UIElements;
 
 namespace UITK
 {
-    public sealed class ProfileItemComponent : UIComponent<GameProfile>
+    public class ProfileItemProps
     {
-        public ProfileItemComponent(GameProfile props, string key = "0") : base(props, key) { }
+        public GameProfile Profile;
+        public IGameProfiles Profiles;
+    }
+
+    public sealed class ProfileItemComponent : UIComponent<ProfileItemProps>
+    {
+        public ProfileItemComponent(ProfileItemProps props, string key = "0") : base(props, key) { }
         private readonly ReactiveProperty<bool> _expanded = new(false);
         private VisualTreeAsset _submenu;
 
@@ -15,25 +21,25 @@ namespace UITK
             _submenu = LoadUITK("Menu/ProfilesAndSaves/Profile/SubMenu/index.uxml");
 
             var btn = View.Q<Button>("ProfileButton");
-            btn.text = Props.Name.Value;
+            btn.text = Props?.Profile?.Name?.Value ?? string.Empty;
 
             Use(_expanded);
 
             RegisterCallback<ClickEvent>(btn, _ =>
             {
                 _expanded.Value = !_expanded.Value;
-                if (_expanded.Value)
+                if (_expanded.Value && Props != null)
                 {
-                    UIGlobalState.Profiles.LoadSaves(Props.ProfileId.Value);
+                    Props.Profiles?.LoadSaves(Props.Profile.ProfileId.Value);
                 }
             });
         }
 
         public override void Render()
         {
-            if (_expanded.Value)
+            if (_expanded.Value && Props != null)
             {
-                Node<ProfileSubMenuComponent, GameProfile>(Props, _submenu, View.Q("SubMenuContainer"), "submenu");
+                Node<ProfileSubMenuComponent, ProfileItemProps>(Props, _submenu, View.Q("SubMenuContainer"), "submenu");
             }
         }
     }

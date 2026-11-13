@@ -3,9 +3,9 @@ using UnityEngine.UIElements;
 
 namespace UITK
 {
-    public sealed class ProfilesSectionComponent : UIComponent<Type>
+    public sealed class ProfilesSectionComponent : UIComponent<IGameProfiles>
     {
-        public ProfilesSectionComponent(Type props, string key = "0") : base(props, key) { }
+        public ProfilesSectionComponent(IGameProfiles props, string key = "0") : base(props, key) { }
 
         private VisualTreeAsset _nowProfile;
         private VisualTreeAsset _saveButton;
@@ -23,10 +23,9 @@ namespace UITK
         public override void Render()
         {
             Node<NowProfileComponent, Type>(null, _nowProfile, View.Q("NowProfileContainer"), "now_profile");
-
             Node<SaveButtonComponent, Type>(null, _saveButton, View.Q("SaveButtonContainer"), "save_button");
-            Node<CreateProfileFormComponent, Type>(null, _form, View.Q("ProfilesFormContainer"), "form");
-            Node<ProfilesListComponent, Type>(null, _list, View.Q("ProfilesListContainer"), "list");
+            Node<CreateProfileFormComponent, IGameProfiles>(Props, _form, View.Q("ProfilesFormContainer"), "form");
+            Node<ProfilesListComponent, IGameProfiles>(Props, _list, View.Q("ProfilesListContainer"), "list");
         }
     }
 }

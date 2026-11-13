@@ -4,9 +4,15 @@ using UnityEngine.UIElements;
 
 namespace UITK
 {
-    public sealed class GameSaveLineComponent : UIComponent<GameSave>
+    public class GameSaveLineProps
     {
-        public GameSaveLineComponent(GameSave props, string key) : base(props, key) { }
+        public GameSave Save;
+        public GameProfile Profile;
+    }
+
+    public sealed class GameSaveLineComponent : UIComponent<GameSaveLineProps>
+    {
+        public GameSaveLineComponent(GameSaveLineProps props, string key) : base(props, key) { }
 
         private VisualTreeAsset _loadButton;
 
@@ -24,21 +30,25 @@ namespace UITK
             _comment = View.Q<Label>("Comment");
             _type = View.Q<Label>("SaveType");
 
-            // реактивность
-            Use(Props.SaveId);
-            Use(Props.CreatedAt);
-            Use(Props.Comment);
-            Use(Props.SaveType);
+            if (Props?.Save != null)
+            {
+                Use(Props.Save.SaveId);
+                Use(Props.Save.CreatedAt);
+                Use(Props.Save.Comment);
+                Use(Props.Save.SaveType);
+            }
         }
 
         public override void Render()
         {
-            _id.text = Props.SaveId.Value;
-            _createdAt.text = Props.CreatedAt.Value.ToString("yyyy-MM-dd HH:mm:ss");
-            _comment.text = Props.Comment.Value;
-            _type.text = Props.SaveType.Value.ToString();
+            if (Props?.Save == null) return;
 
-            Node<LoadButtonComponent, GameSave>(Props, _loadButton, View.Q("LoadButtonContainer"));
+            _id.text = Props.Save.SaveId.Value;
+            _createdAt.text = Props.Save.CreatedAt.Value.ToString("yyyy-MM-dd HH:mm:ss");
+            _comment.text = Props.Save.Comment.Value;
+            _type.text = Props.Save.SaveType.Value.ToString();
+
+            Node<LoadButtonComponent, GameSaveLineProps>(Props, _loadButton, View.Q("LoadButtonContainer"));
         }
     }
 }

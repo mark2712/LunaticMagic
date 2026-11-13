@@ -1,7 +1,5 @@
 using UnityEngine;
 using UniRx;
-using ResourceSystem;
-
 
 public class UIGlobalState
 {
@@ -10,29 +8,21 @@ public class UIGlobalState
     public readonly ReactiveProperty<bool> Loading = new(false);
     public readonly ReactiveProperty<bool> DebugMenu = new(false);
 
-    private static IResourceBinding<IGameProfiles> _profiles;
-    public static IGameProfiles Profiles => _profiles.Resource;
-
-
     public SpawnVrm SpawnVrm = new();
 
     public void Init()
     {
         GlobalGame.InputController.GetButton(InputLayer.Inputs.F12).OnDown += _ => OpenDebugMenu();
+        GlobalGame.InputController.GetButton(InputLayer.Inputs.Console).OnDown += _ => OpenConsole();
+    }
+
+    public void OpenConsole()
+    {
+        Console.Value = !Console.Value;
     }
 
     public void OpenDebugMenu()
     {
         DebugMenu.Value = !DebugMenu.Value;
-        if (DebugMenu.Value)
-        {
-            _profiles ??= ResourceManager.Profiles.Bind("profiles");
-        }
-        else
-        {
-            _profiles?.Dispose();
-            _profiles = null;
-        }
-        // Debug.Log($"F12 {DebugMenu.Value}");
     }
 }
