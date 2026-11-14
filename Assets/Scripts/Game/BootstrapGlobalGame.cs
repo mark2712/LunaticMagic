@@ -20,9 +20,9 @@ public class BootstrapGlobalGame : MonoBehaviour
     private void Init()
     {
         GlobalGame.UIManager.Init();
+        GlobalGame.UIGlobalState.Init();
 
         GlobalGame.Session.Init(new NewGame.MainMenu());
-        GlobalGame.UIGlobalState.Init();
     }
 
     private void Start()
@@ -48,6 +48,7 @@ public class BootstrapGlobalGame : MonoBehaviour
     {
         GlobalGame.Session.LateUpdate();
         GlobalGame.UIController.RenderAll();
+        GlobalGame.InputController.LateUpdate();
     }
 }
 

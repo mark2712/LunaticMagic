@@ -1,11 +1,12 @@
 using UnityEngine;
 using UniRx;
 
+// <summary>
+// Это не весь ui а только системный слой. Независим от геймплея и сессии.
+// </summary>
 public class UIGlobalState
 {
-    public readonly ReactiveProperty<bool> MainMenu = new(false);
     public readonly ReactiveProperty<bool> Console = new(false);
-    public readonly ReactiveProperty<bool> Loading = new(false);
     public readonly ReactiveProperty<bool> DebugMenu = new(false);
 
     public SpawnVrm SpawnVrm = new();

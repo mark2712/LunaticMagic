@@ -17,6 +17,7 @@ public interface IGameSession : IDisposable
     string SessionId { get; }
     GameProfile Profile { get; }
     ILocalGameTime LocalTime { get; }
+    ISessionInputRouter InputRouter { get; } // маршрутизатор ввода для сессии
     ISessionPauseController SessionPauseController { get; } // Вся логика режимов паузы
     ISessionSoundController SessionSoundController { get; } // Реагирует на паузу и управляет 3 слотами музыки
 
@@ -40,6 +41,8 @@ public class GameSession : IGameSession
     public string SessionPath { get; private set; }
     public string SavePath { get; private set; }
     public GameProfile Profile { get; private set; }
+
+    public ISessionInputRouter InputRouter { get; } = new SessionInputRouter(); // маршрутизатор ввода для сессии
 
     public ILocalGameTime LocalTime { get; } = new LocalGameTime();
     public ISessionPauseController SessionPauseController { get; } = new SessionPauseController();
@@ -80,6 +83,8 @@ public class GameSession : IGameSession
         newGame.Execute(EntitiesManager);
         // EntitiesManager.InitAllActiveEntities();
         // EntitiesManager.StartAll();
+
+        InputRouter.Init(IsPaused);
     }
 
     public void CreateSave(GameSaveTypes type, string comment)
@@ -138,6 +143,7 @@ public class GameSession : IGameSession
 
     public void Dispose()
     {
+        InputRouter.Dispose();
         SessionPauseController.Dispose();
         SessionSoundController.Dispose();
         LocalTime.Dispose();
