@@ -6,7 +6,7 @@ public class GameInitializer : MonoBehaviour
 {
     PlayerController playerController;
 
-    public States.SMController SMController;
+    [System.NonSerialized] public States.SMController SMController;
     // private IInputController _inputController;
     // private PlayerInputActions _inputActions;
 

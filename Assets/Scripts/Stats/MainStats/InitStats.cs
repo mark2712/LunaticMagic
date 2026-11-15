@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace Stats
 {
-    [System.Serializable]
     public class InitStats
     {
         public LVL LVL = new(1, 0);

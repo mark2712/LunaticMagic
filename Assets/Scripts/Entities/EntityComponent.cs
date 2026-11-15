@@ -1,76 +1,62 @@
 using System;
-using System.Collections.Generic;
 
 namespace Entities
 {
+    /*
+        АРХИТЕКТУРНОЕ ВИДЕНИЕ: IEntityComponent
+        --------------------------------------
+        Компоненты на уровне системы сущностей отвечают за хранение и модификацию 
+        данных конкретного аспекта сущности (Stats, Inventory, Attributes, AI State).
+        
+        Каждый компонент умеет:
+        - Сериализовать свои данные в JSON (Save)
+        - Восстанавливать свои данные из JSON (Load)
+        
+        Внешние системы (Focus, Streaming L2-L4, Presentation) читают эти компоненты
+        и на их основе создают в мире Unity физику, камеры или визуальные модели.
+    */
+
     public interface IEntityComponent : IDisposable
     {
-        // void Init(); // Срабатывает каждый раз при добавлении компонента. Данные компонента загружены, теперь их можно менять.
-        void Start(); // создание GO, включение Update loops, AI...
-        void Stop(); // уничтожение GO, остановка Update loops, AI...
-        // void Dispose(); // Срабатывает каждый раз при уничтожении компонента. Данные компонента сохранены, теперь их нельзя менять.
+        void Start();
+        void Stop();
         object Save();
         void Load(object data);
     }
 
-    [Serializable]
-    public class EntityComponentsData
-    {
-        public List<ComponentSaveData> Components = new();
-    }
-
     public class EntityComponentBase : IEntityComponent
     {
-        // public virtual void Init() { }
         public virtual void Start() { }
         public virtual void Stop() { }
         public virtual void Dispose() { }
         public virtual void Load(object data) { }
-        public virtual object Save() { return null; }
+        public virtual object Save() => null;
     }
 
-
+    // Тактовые интерфейсы для компонентов, требующих обновления в фоновом режиме (A-Life)
     public interface IFixedUpdateComponent
     {
         void FixedUpdate();
     }
+
     public interface IPauseUpdateComponent
     {
         void PauseUpdate();
     }
+
     public interface IUpdateComponent
     {
         void Update();
     }
+
     public interface ILateUpdateComponent
     {
         void LateUpdate();
     }
 
-
-
-
-    // public class EntityComponentPhysicsBody : EntityComponentBase, IUpdateComponent, IFixedUpdateComponent
-    // {
-    //     public void FixedUpdate()
-    //     {
-    //         throw new NotImplementedException();
-    //     }
-
-    //     public void Update()
-    //     {
-    //         throw new NotImplementedException();
-    //     }
-    // }
+    // Заглушка тестового скрипта инициализации главного меню (для NewGame.cs)
+    public class MainMenuInitScriptComponent : EntityComponentBase
+    {
+        public void Execute() { }
+    }
 }
-
-/*
-EntityNPC
-
-EntityScript - выполняет скрипт
-EntitySpawner - спавнит (создаёт) другие неуникальные сущности в некотором радиусе
-EntityInventory - сущность имеет инвентарь
-EntityStats - сущность имеет уровень, здоровье, сопротивление и тд, может получать урон
-EntityPhysicsBody - сущность имеет физическое тело 
-*/
-

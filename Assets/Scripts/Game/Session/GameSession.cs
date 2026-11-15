@@ -143,11 +143,11 @@ public class GameSession : IGameSession
 
     public void Dispose()
     {
-        InputRouter.Dispose();
+        EntitiesManager.Dispose();
         SessionPauseController.Dispose();
         SessionSoundController.Dispose();
         LocalTime.Dispose();
-        EntitiesManager.Dispose();
+        InputRouter.Dispose();
         Profile.IsSession.Value = false;
     }
 

@@ -26,7 +26,7 @@ namespace UITK
         /// </summary>
         private void DestroyEditorPreviewUIDocumentes()
         {
-            var previews = Object.FindObjectsByType<RootUIDocument>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var previews = Object.FindObjectsByType<RootUIDocument>(FindObjectsInactive.Include);
             foreach (var preview in previews)
             {
                 if (UIDocumentRoot != null && preview != UIDocumentRoot)
@@ -41,8 +41,8 @@ namespace UITK
         /// </summary>
         private void CreateRuntimeUIDocumentRoot()
         {
-            // var prefab = ResourceManager.ResourcesGameObject.Bind("Prefabs/UITK/RootUIDocument").Resource;
-            var prefab = ResourceManager.AddressableGameObject.Bind("Assets/MyFiles/UITK/RootUIDocument.prefab").Resource;
+            using var prefabResource = ResourceManager.AddressableGameObject.Bind("Assets/MyFiles/UITK/RootUIDocument.prefab");
+            var prefab = prefabResource.Resource;
             UIDocumentRoot = Object.Instantiate(prefab);
             Object.DontDestroyOnLoad(UIDocumentRoot);
         }

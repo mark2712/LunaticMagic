@@ -84,6 +84,8 @@ namespace ResourceSystem
                 if (!asset.CanUnload)
                     continue;
 
+                // Soft - удаляет ресурсы RefCount == 0 если они не оспользовались дольше определнного времени
+                // остальные методы одинаковые вызывают очистку всех RefCount == 0 в любом сулчае
                 bool shouldUnload = level switch
                 {
                     CleanupLevel.Soft => asset.LastUseTime.Value <= cutoffTime,
