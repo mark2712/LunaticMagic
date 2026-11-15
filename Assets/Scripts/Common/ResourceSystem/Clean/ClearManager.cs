@@ -11,6 +11,9 @@ namespace ResourceSystem
     /// </summary>
     public sealed class ClearManager : IClearManager
     {
+        // Дефолтный порог времени неиспользования для Soft-очистки.
+        private const int _defaultSoftThreshold = 300;
+        
         private readonly List<ICleanable> _services = new();
         private readonly ClearManagerMemory _memoryMonitor;
 
@@ -20,9 +23,9 @@ namespace ResourceSystem
         public ClearManagerMemory MemoryMonitor => _memoryMonitor;
 
         /// <summary>
-        /// Дефолтный порог времени неиспользования для Soft-очистки (300 секунд).
+        /// Дефолтный порог времени неиспользования для Soft-очистки.
         /// </summary>
-        public TimeSpan DefaultSoftThreshold { get; set; } = TimeSpan.FromSeconds(300);
+        public TimeSpan DefaultSoftThreshold { get; set; } = TimeSpan.FromSeconds(_defaultSoftThreshold);
 
         public ClearManager()
         {
