@@ -52,9 +52,16 @@ namespace UITK
         /// </summary>
         private void CreateRootComponent()
         {
-            UIDocument uiDocument = UIDocumentRoot.GetComponent<UIDocument>();
-            VisualElement rootVisualElement = uiDocument.rootVisualElement;
-            RootComponent = new UIComponentRoot(null).AddTemplate(null, rootVisualElement).CreateRootNode();
+            PanelRenderer panelRenderer = UIDocumentRoot.GetComponent<PanelRenderer>();
+            panelRenderer.RegisterUIReloadCallback((renderer, rootVisualElement) =>
+            {
+                // Если корень уже существовал (например, при live-reload в редакторе), утилизируем его
+                RootComponent?.Dispose();
+                // Создаем и планируем рендер нового корня (отрисуется в LateUpdate через UIController)
+                RootComponent = new UIComponentRoot(null)
+                    .AddTemplate(null, rootVisualElement)
+                    .CreateRootNode();
+            });
         }
     }
 }

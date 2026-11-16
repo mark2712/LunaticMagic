@@ -10,20 +10,17 @@ public interface ISessionInputRouter : IDisposable
     AxisInput<Vector2> Look { get; }
     AxisInput<float> Scroll { get; }
     AxisInput<bool> GetButton(Inputs input);
-    void Init(IReadOnlyReactiveProperty<bool> isPaused);
 }
 
-// Маршрутизатор / шлюз пользовательского ввода для текущей игровой сессии.
-// Работает как фильтрующая прокладка над GlobalGame.InputController:
-// - Если игра НЕ на паузе: транслирует события ввода сущностям сессии.
-// - Если игра на паузе: блокирует игровой ввод и сбрасывает значения в дефолтные (предотвращая залипание клавиш).
-public class SessionInputRouter : ISessionInputRouter
+// Базовый класс для маршрутизаторов ввода сессии.
+// Автоматически управляет подписками на физический GlobalGame.InputController,
+// фильтрует ввод через IsActiveEffective и реагирует на системный оверлей (Console ~, DebugMenu F12).
+public abstract class SessionInputRouter : ISessionInputRouter
 {
     private readonly IInputController _inputController = GlobalGame.InputController;
     private readonly List<Action> _unsubscribers = new();
     private readonly Dictionary<Inputs, AxisInput<bool>> _buttons = new();
-    private IDisposable _pauseSubscription;
-    private IReadOnlyReactiveProperty<bool> _isPaused;
+    private readonly CompositeDisposable _disposables = new();
 
     public AxisInput<Vector2> Move { get; } = new(Vector2.zero);
     public AxisInput<Vector2> Look { get; } = new(Vector2.zero);
@@ -34,11 +31,31 @@ public class SessionInputRouter : ISessionInputRouter
         return _buttons.TryGetValue(input, out var button) ? button : null;
     }
 
-    private bool IsPaused => _isPaused != null && _isPaused.Value;
+    /// <summary>
+    /// Локальное условие активности конкретного канала (например, IsGameplay для геймплея или !IsGameplay для паузы)
+    /// </summary>
+    protected abstract bool IsConditionMet { get; }
 
-    public SessionInputRouter()
+    /// <summary>
+    /// Итоговая активность канала: локальное условие выполнено И глобальный системный UI (консоль/дебаг) закрыт
+    /// </summary>
+    public bool IsActiveEffective
     {
-        // Инициализируем оси кнопок для всех поддерживаемых клавиш ввода
+        get
+        {
+            if (!IsConditionMet)
+                return false;
+
+            if (GlobalGame.UIGlobalState?.IsAnyOpen != null && GlobalGame.UIGlobalState.IsAnyOpen.Value)
+                return false;
+
+            return true;
+        }
+    }
+
+    protected SessionInputRouter()
+    {
+        // Инициализируем оси кнопок
         foreach (Inputs input in Enum.GetValues(typeof(Inputs)))
         {
             if (input is Inputs.Move or Inputs.Look or Inputs.Scroll)
@@ -46,59 +63,48 @@ public class SessionInputRouter : ISessionInputRouter
 
             _buttons[input] = new AxisInput<bool>(false);
         }
+
+        // Подписываемся на системный UI (Console ~, DebugMenu F12)
+        if (GlobalGame.UIGlobalState?.IsAnyOpen != null)
+        {
+            GlobalGame.UIGlobalState.IsAnyOpen
+                .Subscribe(_ => OnStateChanged())
+                .AddTo(_disposables);
+        }
     }
 
-    public void Init(IReadOnlyReactiveProperty<bool> isPaused)
+    protected void BindCondition(IReadOnlyReactiveProperty<bool> condition)
     {
-        Dispose();
-
-        _isPaused = isPaused;
-
-        if (_inputController == null)
-            return;
-
-        // Отслеживаем переход паузы: при входе сбрасываем ввод, при выходе восстанавливаем
-        if (_isPaused != null)
-        {
-            _pauseSubscription = _isPaused.Subscribe(OnPauseChanged);
-        }
+        condition?
+            .Subscribe(_ => OnStateChanged())
+            .AddTo(_disposables);
 
         SubscribeAxes();
         SubscribeButtons();
+        OnStateChanged();
     }
 
     private void SubscribeAxes()
     {
-        // Move (Vector2)
-        Action<Vector2> onMove = v =>
-        {
-            if (!IsPaused)
-                Move.SetValue(v);
-        };
+        if (_inputController == null) return;
+
+        Action<Vector2> onMove = v => { if (IsActiveEffective) Move.SetValue(v); };
         _inputController.Move.OnChanged += onMove;
         _unsubscribers.Add(() => _inputController.Move.OnChanged -= onMove);
 
-        // Look (Vector2)
-        Action<Vector2> onLook = v =>
-        {
-            if (!IsPaused)
-                Look.SetValue(v);
-        };
+        Action<Vector2> onLook = v => { if (IsActiveEffective) Look.SetValue(v); };
         _inputController.Look.OnChanged += onLook;
         _unsubscribers.Add(() => _inputController.Look.OnChanged -= onLook);
 
-        // Scroll (float)
-        Action<float> onScroll = v =>
-        {
-            if (!IsPaused)
-                Scroll.SetValue(v);
-        };
+        Action<float> onScroll = v => { if (IsActiveEffective) Scroll.SetValue(v); };
         _inputController.Scroll.OnChanged += onScroll;
         _unsubscribers.Add(() => _inputController.Scroll.OnChanged -= onScroll);
     }
 
     private void SubscribeButtons()
     {
+        if (_inputController == null) return;
+
         foreach (Inputs input in Enum.GetValues(typeof(Inputs)))
         {
             if (input is Inputs.Move or Inputs.Look or Inputs.Scroll)
@@ -110,7 +116,7 @@ public class SessionInputRouter : ISessionInputRouter
             Inputs captured = input;
             Action<bool> onButtonChanged = v =>
             {
-                if (!IsPaused)
+                if (IsActiveEffective)
                     _buttons[captured].SetValue(v);
             };
 
@@ -119,18 +125,15 @@ public class SessionInputRouter : ISessionInputRouter
         }
     }
 
-    private void OnPauseChanged(bool isPaused)
+    protected void OnStateChanged()
     {
-        if (isPaused)
+        if (IsActiveEffective)
         {
-            // Сбрасываем весь игровой ввод в дефолтные значения (Vector2.zero, 0f, false)
-            // Это вызовет OnUp на зажатых клавишах и остановит перемещение сущностей
-            ResetToDefault();
+            SyncWithGlobalInput();
         }
         else
         {
-            // При снятии с паузы синхронизируем с актуальным физическим вводом
-            SyncWithGlobalInput();
+            ResetToDefault();
         }
     }
 
@@ -164,10 +167,9 @@ public class SessionInputRouter : ISessionInputRouter
         }
     }
 
-    public void Dispose()
+    public virtual void Dispose()
     {
-        _pauseSubscription?.Dispose();
-        _pauseSubscription = null;
+        _disposables.Dispose();
 
         foreach (var unsub in _unsubscribers)
         {
@@ -176,6 +178,35 @@ public class SessionInputRouter : ISessionInputRouter
         _unsubscribers.Clear();
 
         ResetToDefault();
-        _isPaused = null;
+    }
+}
+
+// Канал геймплейного ввода: активен, когда IsGameplay == true и системный оверлей закрыт.
+// Предназначен для сущностей игрового мира (персонаж, турель, транспорт).
+public class InputRouterGameplay : SessionInputRouter
+{
+    private IReadOnlyReactiveProperty<bool> _isGameplay;
+
+    protected override bool IsConditionMet => _isGameplay != null && _isGameplay.Value;
+
+    public void Init(IReadOnlyReactiveProperty<bool> isGameplay)
+    {
+        _isGameplay = isGameplay;
+        BindCondition(isGameplay);
+    }
+}
+
+// Канал ввода паузы: активен, когда IsGameplay == false и системный оверлей закрыт.
+// Предназначен для UI экрана паузы (навигация, Esc для выхода из меню).
+public class InputRouterPause : SessionInputRouter
+{
+    private IReadOnlyReactiveProperty<bool> _isGameplay;
+
+    protected override bool IsConditionMet => _isGameplay != null && !_isGameplay.Value;
+
+    public void Init(IReadOnlyReactiveProperty<bool> isGameplay)
+    {
+        _isGameplay = isGameplay;
+        BindCondition(isGameplay);
     }
 }

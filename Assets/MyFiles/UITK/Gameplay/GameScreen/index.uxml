@@ -1,0 +1,5 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <engine:VisualElement name="GameScreenRoot" style="padding: 16px; position: absolute; top: 0; left: 0;">
+        <engine:Label text="GameScreen" style="font-size: 26px; -unity-font-style: bold; color: #FFFFFF; background-color: rgba(0, 0, 0, 0.5); padding: 8px 16px; border-radius: 4px;" />
+    </engine:VisualElement>
+</engine:UXML>

@@ -1,0 +1,5 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <engine:VisualElement name="EntitiesSyncRoot" style="flex-grow: 1; justify-content: center; align-items: center; background-color: rgba(15, 15, 20, 0.95); width: 100%; height: 100%;">
+        <engine:Label text="EntitiesSync" style="font-size: 32px; -unity-font-style: bold; color: #FFFFFF;" />
+    </engine:VisualElement>
+</engine:UXML>

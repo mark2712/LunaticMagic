@@ -22,7 +22,7 @@ namespace UITK
             Node<SessionLayerComponent, Type>(null, null, View, "layer_session");
 
             // 3. Системный UI (консоль, дебаг-меню)
-            Node<SystemLayerComponent, Type>(null, null, View, "layer_system");
+            Node<GlobalGameLayerComponent, Type>(null, null, View, "layer_global_game");
         }
 
         private void RootVisualElementStyles(VisualElement visualElement)

@@ -13,8 +13,7 @@ public static class GlobalGame
     public static IInputController InputController { get; private set; }
 
     public static GlobalGameSettings Settings = new();
-    // public static IGameProfiles Profiles = new GameProfiles();
-    public static GameSession Session;
+    public static IGameSession Session;
     public static ReactiveProperty<string> SessionProfuleId = new("");
 
     static void GlobalGameInit()
@@ -48,7 +47,7 @@ public static class GlobalGame
     private static void ChangeSession(GameProfile gameProfile, NewGame.INewGameSessionChooser newGame, GameSave gameSave = null, bool init = false)
     {
         Session?.Dispose();
-        Session = new(gameProfile, gameSave);
+        Session = new GameSession(gameProfile, gameSave);
         SessionProfuleId.Value = gameProfile.ProfileId.Value;
         if (!init)
         {

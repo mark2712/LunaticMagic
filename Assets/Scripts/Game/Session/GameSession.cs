@@ -5,7 +5,6 @@
 using System;
 using System.IO;
 using Entities;
-using Game.Session.Pause;
 using Game.Session.Sound;
 using LocalTime;
 using UniRx;
@@ -17,12 +16,15 @@ public interface IGameSession : IDisposable
     string SessionId { get; }
     GameProfile Profile { get; }
     ILocalGameTime LocalTime { get; }
-    ISessionInputRouter InputRouter { get; } // маршрутизатор ввода для сессии
-    ISessionPauseController SessionPauseController { get; } // Вся логика режимов паузы
+    InputRouterGameplay InputRouterGameplay { get; }
+    InputRouterPause InputRouterPause { get; }
     ISessionSoundController SessionSoundController { get; } // Реагирует на паузу и управляет 3 слотами музыки
+    SessionStateManager SessionStateManager { get; } // Управляет состояниями сессии (InitialLoading, EntitiesSync, PauseScreen, Gameplay)
 
     void Init(NewGame.INewGameSessionChooser newGame);
-    IReadOnlyReactiveProperty<bool> IsPaused { get; } // Флаг: пауза или геймплей
+    IReadOnlyReactiveProperty<bool> IsGameplay { get; } // Флаг: активный геймплей
+    IReadOnlyReactiveProperty<bool> IsSessionInitLoading { get; } // Флаг: инициализация сессии. Важно: становится false только после полной загрузки, тоесть ПОЗЖЕ ВСЕХ флагов (включая IsGameplay, который становится true раньше)
+    IReadOnlyReactiveProperty<bool> IsEntitiesSync { get; } // Флаг: синхронизация сущностей
 
     // Создает точку сохранения и упаковывает файлы песочницы сессии в архив профиля.
     void CreateSave(GameSaveTypes type, string comment);
@@ -31,8 +33,8 @@ public interface IGameSession : IDisposable
     void Update();
     void LateUpdate();
 
-    // Задает сложность игры для активного профиля.
-    void SetDifficulty(DifficultyGame difficulty);
+    void SetDifficulty(DifficultyGame difficulty); // Задает сложность игры для активного профиля.
+    void SetProfileName(string name);
 }
 
 public class GameSession : IGameSession
@@ -42,12 +44,22 @@ public class GameSession : IGameSession
     public string SavePath { get; private set; }
     public GameProfile Profile { get; private set; }
 
-    public ISessionInputRouter InputRouter { get; } = new SessionInputRouter(); // маршрутизатор ввода для сессии
+    public InputRouterGameplay InputRouterGameplay { get; } = new();
+    public InputRouterPause InputRouterPause { get; } = new();
+
+    public ReactiveProperty<bool> IsGameplay { get; } = new(false);
+    IReadOnlyReactiveProperty<bool> IGameSession.IsGameplay => IsGameplay;
+
+    public ReactiveProperty<bool> IsSessionInitLoading { get; } = new(true);
+    IReadOnlyReactiveProperty<bool> IGameSession.IsSessionInitLoading => IsSessionInitLoading;
+
+    public ReactiveProperty<bool> IsEntitiesSync { get; } = new(false);
+    IReadOnlyReactiveProperty<bool> IGameSession.IsEntitiesSync => IsEntitiesSync;
 
     public ILocalGameTime LocalTime { get; } = new LocalGameTime();
-    public ISessionPauseController SessionPauseController { get; } = new SessionPauseController();
     public ISessionSoundController SessionSoundController { get; } = new SessionSoundController();
-    public IReadOnlyReactiveProperty<bool> IsPaused => SessionPauseController.IsPaused;
+
+    public SessionStateManager SessionStateManager { get; }
 
     public EntitiesManager EntitiesManager = new();
     public EntitiesLoader EntitiesLoader = new();
@@ -69,6 +81,8 @@ public class GameSession : IGameSession
             SavePath = DataPathManager.GameProfileSave(Profile.ProfileId.Value, gameSave.SaveId.Value);
             DataPathManager.CopyDirectory(SavePath, SessionPath);
         }
+
+        SessionStateManager = new SessionStateManager(IsSessionInitLoading, IsEntitiesSync, IsGameplay);
     }
 
     public void Init(NewGame.INewGameSessionChooser newGame)
@@ -77,14 +91,21 @@ public class GameSession : IGameSession
         GameSessionData RuntimeGameSessionData = SaveData.Load<GameSessionData>(SessionPath, "GameSessionData") ?? new();
         Load(RuntimeGameSessionData);
 
-        // EntitiesManager уже готов после Load, но нужно проверить все ли уникальные сущности загружены (например при новой игре)
-        EntitiesLoader.RegisterMissingEntities(EntitiesManager);
+        // 4. Инициализируем каналы ввода
+        InputRouterGameplay.Init(IsGameplay);
+        InputRouterPause.Init(IsGameplay);
 
-        newGame.Execute(EntitiesManager);
+        // 5. EntitiesManager уже готов после Load, но нужно проверить все ли уникальные сущности загружены (например при новой игре)
+        EntitiesLoader.RegisterMissingEntities(EntitiesManager); // скорее всего устарело
+
+        // 6. Переключаем фокус на сущность. Если это новая игра то получив фокус сущность сразу начнет выполянть свои скрипты.
+        // newGame.Execute(EntitiesManager);
+
         // EntitiesManager.InitAllActiveEntities();
         // EntitiesManager.StartAll();
 
-        InputRouter.Init(IsPaused);
+        IsGameplay.Value = true;
+        IsSessionInitLoading.Value = false;
     }
 
     public void CreateSave(GameSaveTypes type, string comment)
@@ -112,7 +133,7 @@ public class GameSession : IGameSession
 
     public void FixedUpdate()
     {
-        if (!IsPaused.Value)
+        if (IsGameplay.Value)
         {
             LocalTime.FixedUpdate(Time.fixedDeltaTime);
             EntitiesManager.FixedUpdate();
@@ -121,10 +142,9 @@ public class GameSession : IGameSession
 
     public void Update()
     {
-        if (IsPaused.Value)
+        if (!IsGameplay.Value)
         {
             LocalTime.Update(Time.unscaledDeltaTime);
-            SessionPauseController.Update();
             EntitiesManager.PauseUpdate();
         }
         else
@@ -135,7 +155,7 @@ public class GameSession : IGameSession
 
     public void LateUpdate()
     {
-        if (!IsPaused.Value)
+        if (IsGameplay.Value)
         {
             EntitiesManager.LateUpdate();
         }
@@ -144,10 +164,13 @@ public class GameSession : IGameSession
     public void Dispose()
     {
         EntitiesManager.Dispose();
-        SessionPauseController.Dispose();
         SessionSoundController.Dispose();
         LocalTime.Dispose();
-        InputRouter.Dispose();
+        InputRouterGameplay.Dispose();
+        InputRouterPause.Dispose();
+        IsGameplay.Dispose();
+        IsSessionInitLoading.Dispose();
+        IsEntitiesSync.Dispose();
         Profile.IsSession.Value = false;
     }
 
@@ -175,27 +198,30 @@ public class GameSession : IGameSession
         }
     }
 
+    // --- Работа с профилем ---
     public void SetDifficulty(DifficultyGame difficulty)
     {
         if (Profile.Difficulty.Value == difficulty) return;
         Profile.Difficulty.Value = difficulty;
-
-        using var profilesBinding = ResourceManager.Profiles.Bind("profiles"); // загрузить профили
-        var profiles = profilesBinding.Resource;
-        profiles.Update(Profile);
+        ProfileUpdate(Profile);
     }
 
-    public void SetName(string name)
+    public void SetProfileName(string name)
     {
         if (Profile.Name.Value == name) return;
         Profile.Name.Value = name;
+        ProfileUpdate(Profile);
+    }
 
+    public void ProfileUpdate(GameProfile Profile)
+    {
         using var profilesBinding = ResourceManager.Profiles.Bind("profiles"); // загрузить профили
         var profiles = profilesBinding.Resource;
         profiles.Update(Profile);
     }
 
 
+    // --- Сериализация ---
     public void Load(GameSessionData data)
     {
         LocalTime.Load(data.LocalGameTimeData);
