@@ -89,7 +89,7 @@ namespace UITK
 
             SubscribeLanguage();
             Init();
-            Render();
+            PerformRender();
             return this;
         }
 
@@ -114,6 +114,12 @@ namespace UITK
             NewNodes.Clear();
         }
 
+        public void PerformRender()
+        {
+            Render();
+            CleanupNodes();
+        }
+
         public void Dispose()
         {
             if (_isDisposed) return;
@@ -131,6 +137,7 @@ namespace UITK
             Destroy();
 
             EventsDispose();
+            SubscriptionsDispose();
 
             if (Parent != null)
             {

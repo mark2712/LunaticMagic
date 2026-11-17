@@ -9,8 +9,8 @@ public sealed partial class GameProfiles : IGameProfiles
         List<GameProfile> profiles = new()
         {
             ProfileFabric("System Main Menu",  ProfileTypes.System, DifficultyGame.Normal, SystemProfileIds.SystemMainMenu),
-            ProfileFabric("System Load", ProfileTypes.System, DifficultyGame.Normal,SystemProfileIds.SystemLoad),
-            ProfileFabric("System Debug", ProfileTypes.System, DifficultyGame.Normal, SystemProfileIds.SystemDebug),
+            // ProfileFabric("System Load", ProfileTypes.System, DifficultyGame.Normal,SystemProfileIds.SystemLoad),
+            // ProfileFabric("System Debug", ProfileTypes.System, DifficultyGame.Normal, SystemProfileIds.SystemDebug),
         };
         return profiles;
     }

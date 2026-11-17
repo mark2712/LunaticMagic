@@ -38,105 +38,57 @@ public readonly struct CursorStateConfig
 
 public interface ICursorState : IDisposable
 {
-    CursorStateMode CurrentEffectiveMode { get; }
-    CursorStateMode RequestedMode { get; }
-
-    void Init(Func<CursorStateMode> sessionModeProvider, IObservable<Unit> stateChangedObservable = null);
-    void SetState(CursorStateMode mode);
-    void SetState(CursorStateConfig config);
-    void Refresh();
+    IReadOnlyReactiveProperty<CursorStateMode> CurrentMode { get; }
+    void Apply(CursorStateMode mode);
 }
 
 // Контроллер состояния курсора в сессии.
-// Учитывает приоритет глобального системного UI (UIGlobalState.IsAnyOpen - консоль, дебаг-меню):
-// - Если открыт системный UI -> курсор принудительно виден и разблокирован (Visible).
-// - Если системный UI закрыт -> опрашивает актуальный стейт сессии (провайдер) или запрошенный режим.
+// Реактивно вычисляет стейт курсора через CursorComputed на основе 3 источников:
+// 1. GlobalGame.UIGlobalState.IsAnyOpen
+// 2. SessionStateManager.CurrentState
+// 3. SessionStates.Gameplay.FocusCursorMode
 public class CursorState : ICursorState
 {
     private readonly CompositeDisposable _disposables = new();
-    private Func<CursorStateMode> _sessionModeProvider;
-    private CursorStateMode _requestedMode = CursorStateMode.Visible;
+    private readonly ReactiveProperty<CursorStateMode> _currentMode = new(CursorStateMode.Visible);
 
-    public CursorStateMode CurrentEffectiveMode { get; private set; } = CursorStateMode.Visible;
-    public CursorStateMode RequestedMode => _requestedMode;
+    public IReadOnlyReactiveProperty<CursorStateMode> CurrentMode => _currentMode;
 
-    public CursorState()
+    public CursorState(SessionStateManager sessionStateManager)
+        : this(sessionStateManager.CurrentState)
     {
-        // Подписываемся на системный UI оверлей (Console ~, DebugMenu F12)
-        if (GlobalGame.UIGlobalState?.IsAnyOpen != null)
-        {
-            GlobalGame.UIGlobalState.IsAnyOpen
-                .Subscribe(_ => Refresh())
-                .AddTo(_disposables);
-        }
-
-        // Подписываемся на динамическую смену курсора сущности в фокусе геймплея (диалоги, инвентарь)
-        SessionStates.Gameplay.OnFocusCursorModeChanged += Refresh;
     }
 
-    /// <summary>
-    /// Инициализирует опрос актуального стейта сессии и подписку на изменение состояния.
-    /// </summary>
-    public void Init(Func<CursorStateMode> sessionModeProvider, IObservable<Unit> stateChangedObservable = null)
+    public CursorState(IReadOnlyReactiveProperty<SessionState> sessionState)
     {
-        _sessionModeProvider = sessionModeProvider;
-        if (stateChangedObservable != null)
-        {
-            stateChangedObservable
-                .Subscribe(_ => Refresh())
-                .AddTo(_disposables);
-        }
-        Refresh();
+        Observable.CombineLatest(
+            GlobalGame.UIGlobalState.IsAnyOpen,
+            sessionState,
+            SessionStates.Gameplay.FocusCursorMode,
+            (isGlobalOpen, state, focusMode) => CursorComputed.Computed(isGlobalOpen, state, focusMode))
+            .DistinctUntilChanged()
+            .Subscribe(Apply)
+            .AddTo(_disposables);
     }
 
-    public void SetState(CursorStateMode mode)
+    public void Apply(CursorStateMode mode)
     {
-        _requestedMode = mode;
-        Refresh();
-    }
-
-    public void SetState(CursorStateConfig config)
-    {
-        SetState(config.Mode);
-    }
-
-    public void Refresh()
-    {
-        // 1. Наивысший приоритет: системный оверлей (консоль или дебаг меню)
-        if (GlobalGame.UIGlobalState?.IsAnyOpen != null && GlobalGame.UIGlobalState.IsAnyOpen.Value)
-        {
-            Apply(CursorStateConfig.Visible);
-            return;
-        }
-
-        // 2. Опрашиваем провайдер актуального стейта сессии (если задан), иначе берем _requestedMode
-        CursorStateMode targetMode = _sessionModeProvider != null
-            ? _sessionModeProvider()
-            : _requestedMode;
-
-        switch (targetMode)
+        _currentMode.Value = mode;
+        switch (mode)
         {
             case CursorStateMode.Locked:
-                Apply(CursorStateConfig.Locked);
+                CursorStateConfig.Locked.Apply();
                 break;
             case CursorStateMode.Visible:
-                Apply(CursorStateConfig.Visible);
+                CursorStateConfig.Visible.Apply();
                 break;
         }
-    }
-
-    private void Apply(CursorStateConfig config)
-    {
-        CurrentEffectiveMode = config.Mode;
-        config.Apply();
     }
 
     public void Dispose()
     {
-        SessionStates.Gameplay.OnFocusCursorModeChanged -= Refresh;
         _disposables.Dispose();
-
-        // При уничтожении освобождаем курсор для безопасности
-        Apply(CursorStateConfig.Visible);
+        _currentMode.Dispose();
+        CursorStateConfig.Visible.Apply();
     }
 }

@@ -7,6 +7,7 @@ using UniRx;
 namespace UITK
 {
     /* Управление реактивностью  */
+    /* Осторожнее с Use, его лучше использовать в Init, потому что если мы подписываемся в Render то подписка будет создана каждый раз при перерисовке что приведет к багам. */
     public abstract partial class UIComponent : IDisposable
     {
         private readonly List<ISubscriptionMarker> _subscriptions = new();
@@ -16,7 +17,8 @@ namespace UITK
         {
             if (!_subscriptions.Any(s => s.IsSameSource(property)))
             {
-                var sub = property.Subscribe(_ => ScheduleRender());
+                // var sub = property.Subscribe(_ => ScheduleRender());
+                var sub = property.SkipLatestValueOnSubscribe().Subscribe(_ => ScheduleRender());
                 _subscriptions.Add(new SubscriptionMarker<IReadOnlyReactiveProperty<T>>(property, sub));
             }
 
@@ -74,6 +76,13 @@ namespace UITK
             public void Dispose() => _disposable.Dispose();
 
             public bool IsSameSource(object source) => ReferenceEquals(Source, source);
+        }
+
+        protected void SubscriptionsDispose()
+        {
+            foreach (var sub in _subscriptions)
+                sub.Dispose();
+            _subscriptions.Clear();
         }
     }
 }

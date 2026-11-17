@@ -29,12 +29,13 @@ namespace UITK
                 var component = (TNewUIComponent)existing;
 
                 // Проверка props и зависимостей
-                if ((props == null || component.Props.Equals(props)) && component.Template == template && component.Container == container)
+                // if ((props == null || component.Props.Equals(props)) && component.Template == template && component.Container == container)
+                if (EqualityComparer<TNewProps>.Default.Equals(component.Props, props) && component.Template == template && component.Container == container)
                 {
                     // В UITK аналог SetAsLastSibling -> BringToFront
                     component.View.BringToFront();
 
-                    component.Render();
+                    component.PerformRender();
                     NewNodes.Add(component);
                     return component;
                 }

@@ -69,12 +69,10 @@ namespace UITK
                 if (component.View == null)
                 {
                     component.CreateView();
-                    component.CleanupNodes();
                 }
                 else
                 {
-                    component.Render();
-                    component.CleanupNodes();
+                    component.PerformRender();
                 }
             }
 

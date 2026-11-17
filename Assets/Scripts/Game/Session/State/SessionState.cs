@@ -13,13 +13,13 @@ namespace Game.Session.Pause
         public abstract string Name { get; }
         public abstract bool IsGameplay { get; }
         public abstract CursorStateMode CursorMode { get; }
-        
+
         public abstract SessionSoundSlot ActiveSoundSlot { get; }
         public abstract bool ResetMusicOnEnter { get; }
         public virtual ITimeState TimeState => TimeStateFactory.Pause();
 
-        public virtual void Enter() 
-        { 
+        public virtual void Enter()
+        {
             var session = GlobalGame.Session;
             session?.LocalTime?.SetState(TimeState);
             session?.SessionSoundController?.SetActiveSlot(ActiveSoundSlot, ResetMusicOnEnter);
@@ -34,7 +34,7 @@ namespace Game.Session.Pause
     {
         public override string Name => "InitialLoading";
         public override bool IsGameplay => false;
-        public override CursorStateMode CursorMode => CursorStateMode.Locked;
+        public override CursorStateMode CursorMode => CursorStateMode.Visible;
         public override SessionSoundSlot ActiveSoundSlot => SessionSoundSlot.Loading;
         public override bool ResetMusicOnEnter => true;
     }
@@ -70,13 +70,13 @@ namespace Game.Session.Pause
         public override ITimeState TimeState => TimeStateFactory.Normal();
 
         private readonly ReactiveProperty<IFocusable> _currentFocus = new();
+        private readonly ReactiveProperty<CursorStateMode> _focusCursorMode = new(CursorStateMode.Locked);
         private IDisposable _focusCursorSubscription;
 
         public IReadOnlyReactiveProperty<IFocusable> CurrentFocus => _currentFocus;
+        public IReadOnlyReactiveProperty<CursorStateMode> FocusCursorMode => _focusCursorMode;
 
-        public override CursorStateMode CursorMode => _currentFocus.Value?.CursorMode?.Value ?? CursorStateMode.Locked;
-
-        public event Action OnFocusCursorModeChanged;
+        public override CursorStateMode CursorMode => _focusCursorMode.Value;
 
         public void SetFocus(IFocusable focus)
         {
@@ -90,11 +90,13 @@ namespace Game.Session.Pause
 
             if (focus != null && focus.CursorMode != null)
             {
-                // Подписываемся на реактивное изменение курсора у сущности (например, вход в диалог/инвентарь)
-                _focusCursorSubscription = focus.CursorMode.Subscribe(_ => OnFocusCursorModeChanged?.Invoke());
+                _focusCursorMode.Value = focus.CursorMode.Value;
+                _focusCursorSubscription = focus.CursorMode.Subscribe(mode => _focusCursorMode.Value = mode);
             }
-
-            OnFocusCursorModeChanged?.Invoke();
+            else
+            {
+                _focusCursorMode.Value = CursorStateMode.Locked;
+            }
         }
     }
 

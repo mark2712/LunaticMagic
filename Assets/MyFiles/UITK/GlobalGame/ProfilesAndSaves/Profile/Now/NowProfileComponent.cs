@@ -21,7 +21,7 @@ namespace UITK
             _difficultyLabel = View.Q<Label>("DifficultyLabel");
             _typeLabel = View.Q<Label>("TypeLabel");
 
-            Use(GlobalGame.SessionProfuleId); // именно по этому флагу можно понять что профиль сессии сменися
+            Use(GlobalGame.SessionId);
         }
 
         public override void Render()

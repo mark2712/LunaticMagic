@@ -16,15 +16,17 @@ public interface IGameSession : IDisposable
     string SessionId { get; }
     GameProfile Profile { get; }
     ILocalGameTime LocalTime { get; }
+    CursorState CursorState { get; }
+    GameLoader GameLoader { get; }
     InputRouterGameplay InputRouterGameplay { get; }
     InputRouterPause InputRouterPause { get; }
     ISessionSoundController SessionSoundController { get; } // Реагирует на паузу и управляет 3 слотами музыки
     SessionStateManager SessionStateManager { get; } // Управляет состояниями сессии (InitialLoading, EntitiesSync, PauseScreen, Gameplay)
 
     void Init(NewGame.INewGameSessionChooser newGame);
-    IReadOnlyReactiveProperty<bool> IsGameplay { get; } // Флаг: активный геймплей
-    IReadOnlyReactiveProperty<bool> IsSessionInitLoading { get; } // Флаг: инициализация сессии. Важно: становится false только после полной загрузки, тоесть ПОЗЖЕ ВСЕХ флагов (включая IsGameplay, который становится true раньше)
-    IReadOnlyReactiveProperty<bool> IsEntitiesSync { get; } // Флаг: синхронизация сущностей
+    ReactiveProperty<bool> IsGameplay { get; } // Флаг: активный геймплей
+    ReactiveProperty<bool> IsSessionInitLoading { get; } // Флаг: инициализация сессии. Важно: становится false только после полной загрузки, тоесть ПОЗЖЕ ВСЕХ флагов (включая IsGameplay, который становится true раньше)
+    ReactiveProperty<bool> IsEntitiesSync { get; } // Флаг: синхронизация сущностей
 
     // Создает точку сохранения и упаковывает файлы песочницы сессии в архив профиля.
     void CreateSave(GameSaveTypes type, string comment);
@@ -44,17 +46,15 @@ public class GameSession : IGameSession
     public string SavePath { get; private set; }
     public GameProfile Profile { get; private set; }
 
+    public CursorState CursorState { get; }
+    public GameLoader GameLoader { get; private set; }
+
     public InputRouterGameplay InputRouterGameplay { get; } = new();
     public InputRouterPause InputRouterPause { get; } = new();
 
     public ReactiveProperty<bool> IsGameplay { get; } = new(false);
-    IReadOnlyReactiveProperty<bool> IGameSession.IsGameplay => IsGameplay;
-
     public ReactiveProperty<bool> IsSessionInitLoading { get; } = new(true);
-    IReadOnlyReactiveProperty<bool> IGameSession.IsSessionInitLoading => IsSessionInitLoading;
-
     public ReactiveProperty<bool> IsEntitiesSync { get; } = new(false);
-    IReadOnlyReactiveProperty<bool> IGameSession.IsEntitiesSync => IsEntitiesSync;
 
     public ILocalGameTime LocalTime { get; } = new LocalGameTime();
     public ISessionSoundController SessionSoundController { get; } = new SessionSoundController();
@@ -83,6 +83,8 @@ public class GameSession : IGameSession
         }
 
         SessionStateManager = new SessionStateManager(IsSessionInitLoading, IsEntitiesSync, IsGameplay);
+        CursorState = new CursorState(SessionStateManager);
+        GameLoader = new GameLoader();
     }
 
     public void Init(NewGame.INewGameSessionChooser newGame)
@@ -94,18 +96,12 @@ public class GameSession : IGameSession
         // 4. Инициализируем каналы ввода
         InputRouterGameplay.Init(IsGameplay);
         InputRouterPause.Init(IsGameplay);
+        
+        GlobalGame.Session.InputRouterGameplay.GetButton(InputLayer.Inputs.E).OnDown += _ => { GlobalGame.Session.IsGameplay.Value = false; };
+        GlobalGame.Session.InputRouterPause.GetButton(InputLayer.Inputs.E).OnUp += _ => { GlobalGame.Session.IsGameplay.Value = true; };
 
-        // 5. EntitiesManager уже готов после Load, но нужно проверить все ли уникальные сущности загружены (например при новой игре)
-        EntitiesLoader.RegisterMissingEntities(EntitiesManager); // скорее всего устарело
-
-        // 6. Переключаем фокус на сущность. Если это новая игра то получив фокус сущность сразу начнет выполянть свои скрипты.
-        // newGame.Execute(EntitiesManager);
-
-        // EntitiesManager.InitAllActiveEntities();
-        // EntitiesManager.StartAll();
-
-        IsGameplay.Value = true;
-        IsSessionInitLoading.Value = false;
+        // 5. Запуск процесса загрузки и синхронизации
+        GameLoader.Start(newGame, this);
     }
 
     public void CreateSave(GameSaveTypes type, string comment)
@@ -163,6 +159,8 @@ public class GameSession : IGameSession
 
     public void Dispose()
     {
+        GameLoader?.Dispose();
+        CursorState.Dispose();
         EntitiesManager.Dispose();
         SessionSoundController.Dispose();
         LocalTime.Dispose();

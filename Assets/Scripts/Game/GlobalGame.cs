@@ -14,7 +14,7 @@ public static class GlobalGame
 
     public static GlobalGameSettings Settings = new();
     public static IGameSession Session;
-    public static ReactiveProperty<string> SessionProfuleId = new("");
+    public static ReactiveProperty<string> SessionId = new("");
 
     static void GlobalGameInit()
     {
@@ -48,11 +48,11 @@ public static class GlobalGame
     {
         Session?.Dispose();
         Session = new GameSession(gameProfile, gameSave);
-        SessionProfuleId.Value = gameProfile.ProfileId.Value;
+        SessionId.Value = Session.SessionId;
         if (!init)
         {
             Session.Init(newGame);
-            Debug.Log($"Сессия загружена {SessionProfuleId}");
+            Debug.Log($"Сессия загружена {SessionId.Value}");
         }
     }
 

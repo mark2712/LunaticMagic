@@ -18,7 +18,7 @@ namespace UITK
             SetupLayerStyle(View);
             _gameScreen = LoadUITK("Gameplay/GameScreen/index.uxml");
 
-            Use(GlobalGame.SessionProfuleId);
+            Use(GlobalGame.SessionId);
             BindSessionState();
         }
 
