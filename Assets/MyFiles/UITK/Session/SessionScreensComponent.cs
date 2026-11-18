@@ -1,5 +1,5 @@
 using System;
-using Game.Session.Pause;
+using SessionSM;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -17,7 +17,7 @@ namespace UITK
         private VisualTreeAsset _initialLoading;
         private VisualTreeAsset _entitiesSync;
 
-        private IReadOnlyReactiveProperty<SessionState> _sessionState;
+        private IReadOnlyReactiveProperty<SessionStateBase> _sessionState;
 
         public override void Init()
         {
@@ -38,16 +38,16 @@ namespace UITK
             var state = _sessionState?.Value;
             if (state == null) return;
 
-            if (state is SessionStateInitialLoading)
+            if (state is SessionInitialLoadingState)
             {
                 var loading = GlobalGame.Session?.GameLoader?.LoadingProgress;
                 Node<InitialLoadingComponent, GameLoadingProgress>(loading, _initialLoading, View, "initial_loading");
             }
-            else if (state is SessionStateEntitiesSync)
+            else if (state is SessionEntitiesSyncState)
             {
                 Node<EntitiesSyncComponent, Type>(null, _entitiesSync, View, "entities_sync");
             }
-            else if (state is SessionStatePauseScreen)
+            else if (state is SessionPauseScreenState)
             {
                 Node<PauseScreenComponent, Type>(null, _pauseScreen, View, "pause_screen");
             }

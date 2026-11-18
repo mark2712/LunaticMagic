@@ -55,12 +55,9 @@ public class GameLoader : IDisposable
                     // _newGame?.Execute(_session.EntitiesManager);
 
                     // 4. Завершение синхронизации и переход в геймплей через Batch
-                    _session.SessionStateManager.Batch(() =>
-                    {
-                        _session.IsEntitiesSync.Value = false;
-                        _session.IsGameplay.Value = true;
-                        _session.IsSessionInitLoading.Value = false;
-                    });
+                    _session.IsEntitiesSync.Value = false;
+                    _session.IsGameplay.Value = true;
+                    _session.IsSessionInitLoading.Value = false;
 
                     // Debug.Log("[GameLoader] Загрузка и синхронизация успешно завершены. Вход в геймплей.");
                 }

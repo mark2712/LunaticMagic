@@ -1,4 +1,4 @@
-using Game.Session.Pause;
+using SessionSM;
 
 // Чистый вычислитель актуального состояния курсора на основе 3 параметров:
 // 1. isGlobalUIOpen (UIGlobalState.IsAnyOpen: консоль ~, дебаг-меню F12)
@@ -6,7 +6,7 @@ using Game.Session.Pause;
 // 3. focusCursorMode (CursorMode сущности в фокусе геймплея)
 public static class CursorComputed
 {
-    public static CursorStateMode Computed(bool isGlobalUIOpen, SessionState sessionState, CursorStateMode focusCursorMode)
+    public static CursorStateMode Computed(bool isGlobalUIOpen, SessionStateBase sessionState, CursorStateMode focusCursorMode)
     {
         // 1. Наивысший приоритет: открыт системный глобальный UI (консоль, дебаг-меню) -> курсор всегда виден
         if (isGlobalUIOpen)
@@ -21,7 +21,7 @@ public static class CursorComputed
         }
 
         // 3. Активный геймплей: режим курсора определяет сущность в фокусе (инвентарь, диалог, свободный обзор)
-        if (sessionState is SessionStateGameplay)
+        if (sessionState is SessionGameplayState)
         {
             return focusCursorMode;
         }

@@ -1,5 +1,5 @@
 using System;
-using Game.Session.Pause;
+using SessionSM;
 using UniRx;
 using UnityEngine;
 
@@ -59,7 +59,7 @@ public class CursorState : ICursorState
     {
     }
 
-    public CursorState(IReadOnlyReactiveProperty<SessionState> sessionState)
+    public CursorState(IReadOnlyReactiveProperty<SessionStateBase> sessionState)
     {
         Observable.CombineLatest(
             GlobalGame.UIGlobalState.IsAnyOpen,

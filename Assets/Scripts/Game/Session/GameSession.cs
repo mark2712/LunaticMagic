@@ -9,6 +9,7 @@ using Game.Session.Sound;
 using LocalTime;
 using UniRx;
 using UnityEngine;
+using SessionSM;
 
 // Интерфейс активной игровой сессии. Определяет контракт доступа к состоянию сессии, времени, паузе, звуку и сохранению.
 public interface IGameSession : IDisposable
@@ -18,8 +19,6 @@ public interface IGameSession : IDisposable
     ILocalGameTime LocalTime { get; }
     CursorState CursorState { get; }
     GameLoader GameLoader { get; }
-    InputRouterGameplay InputRouterGameplay { get; }
-    InputRouterPause InputRouterPause { get; }
     ISessionSoundController SessionSoundController { get; } // Реагирует на паузу и управляет 3 слотами музыки
     SessionStateManager SessionStateManager { get; } // Управляет состояниями сессии (InitialLoading, EntitiesSync, PauseScreen, Gameplay)
 
@@ -48,9 +47,6 @@ public class GameSession : IGameSession
 
     public CursorState CursorState { get; }
     public GameLoader GameLoader { get; private set; }
-
-    public InputRouterGameplay InputRouterGameplay { get; } = new();
-    public InputRouterPause InputRouterPause { get; } = new();
 
     public ReactiveProperty<bool> IsGameplay { get; } = new(false);
     public ReactiveProperty<bool> IsSessionInitLoading { get; } = new(true);
@@ -93,14 +89,7 @@ public class GameSession : IGameSession
         GameSessionData RuntimeGameSessionData = SaveData.Load<GameSessionData>(SessionPath, "GameSessionData") ?? new();
         Load(RuntimeGameSessionData);
 
-        // 4. Инициализируем каналы ввода
-        InputRouterGameplay.Init(IsGameplay);
-        InputRouterPause.Init(IsGameplay);
-        
-        GlobalGame.Session.InputRouterGameplay.GetButton(InputLayer.Inputs.E).OnDown += _ => { GlobalGame.Session.IsGameplay.Value = false; };
-        GlobalGame.Session.InputRouterPause.GetButton(InputLayer.Inputs.E).OnUp += _ => { GlobalGame.Session.IsGameplay.Value = true; };
-
-        // 5. Запуск процесса загрузки и синхронизации
+        // 4. Запуск процесса загрузки и синхронизации
         GameLoader.Start(newGame, this);
     }
 
@@ -155,17 +144,17 @@ public class GameSession : IGameSession
         {
             EntitiesManager.LateUpdate();
         }
+        SessionStateManager.LateUpdate();
     }
 
     public void Dispose()
     {
         GameLoader?.Dispose();
+        SessionStateManager.Dispose();
         CursorState.Dispose();
         EntitiesManager.Dispose();
         SessionSoundController.Dispose();
         LocalTime.Dispose();
-        InputRouterGameplay.Dispose();
-        InputRouterPause.Dispose();
         IsGameplay.Dispose();
         IsSessionInitLoading.Dispose();
         IsEntitiesSync.Dispose();
